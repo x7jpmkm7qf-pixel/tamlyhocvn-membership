@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(for dir in analytics competitor content copy delivery deploy funnel landing-page lead-magnet notification objection offer optimize payment-embed payment-setup research revenue sales-page)",
+      "Bash(do mv \"$dir\" \"biz-$dir\")",
+      "Bash(done)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)"
+    ]
+  }
+}
