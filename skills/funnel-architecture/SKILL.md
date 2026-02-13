@@ -58,8 +58,8 @@ This backwards approach ensures every funnel stage has a purpose and moves prosp
 
 This skill includes comprehensive frameworks:
 
-- **`funnel-stages-and-flow-design.md`** - Complete stage breakdowns, flow diagrams for 5 common solopreneur funnels, traffic source mapping, and conversion benchmarks
-- **`funnel-optimization-playbook.md`** - Diagnostic framework, 15 common problems with solutions, testing priorities, and funnel health scorecard
+- **`references/funnel-stages-and-flow-design.md`** - Complete stage breakdowns, flow diagrams for 5 common solopreneur funnels, traffic source mapping, and conversion benchmarks
+- **`references/funnel-optimization-playbook.md`** - Diagnostic framework, 15 common problems with solutions, testing priorities, and funnel health scorecard
 
 ## Best Practices
 

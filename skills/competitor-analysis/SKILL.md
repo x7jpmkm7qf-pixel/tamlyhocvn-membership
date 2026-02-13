@@ -75,7 +75,7 @@ Develop differentiation strategy:
 
 ### Mapping and Analysis
 - `references/competitive-landscape-mapping.md` - Complete mapping methodology and frameworks
-- `references/gap-analysis-and-positioning.md` - Gap identification and positioning strategies
+- `references/gap-analysis-framework.md` - Gap identification and positioning strategies
 
 ## Best Practices
 

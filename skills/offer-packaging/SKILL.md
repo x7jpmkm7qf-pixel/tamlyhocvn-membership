@@ -50,16 +50,16 @@ For each offer, maximize the numerator (outcome + likelihood) and minimize the d
 ## Reference Files
 
 ### Value Architecture
-- **File**: `references/value-ladder-and-offer-architecture.md`
+- **File**: `references/value-ladder-design-framework.md`
 - **Use for**: Building value ladders, structuring offer stacks, creating bonus bundles
 
 ### Pricing Strategy
-- **File**: `references/pricing-and-psychology-guide.md`
+- **File**: `references/pricing-psychology-tactics.md`
 - **Use for**: Setting prices, using psychological pricing techniques, market positioning
 
-### Guarantee & Urgency
-- **File**: `references/guarantee-and-urgency-playbook.md`
-- **Use for**: Engineering guarantees, creating urgency, risk reversal strategies
+### Offer Stack Building
+- **File**: `references/offer-stack-builder-template.md`
+- **Use for**: Building offer stacks, guarantee engineering, urgency and risk reversal strategies
 
 ## Best Practices
 

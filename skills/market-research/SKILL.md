@@ -124,7 +124,7 @@ Detailed methodologies and templates:
    - Demand scoring matrix
    - Report template
 
-2. **[Market Sizing Framework](./references/market-sizing-framework.md)**
+2. **[Market Analysis Framework](./references/market-analysis-framework.md)**
    - TAM/SAM/SOM calculation methods
    - Competitive density analysis
    - Market maturity assessment
