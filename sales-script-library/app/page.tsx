@@ -307,42 +307,115 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── PRICING ──────────────────────────── */}
-      <section className="bg-gradient-to-br from-violet-600 to-violet-800 py-16 px-4">
-        <div className="max-w-md mx-auto text-center">
-          <p className="text-violet-300 text-xs font-bold uppercase tracking-widest mb-3">Giá thành viên</p>
-          <div className="bg-white/10 backdrop-blur border border-white/20 rounded-3xl p-8 mb-6">
-            <div className="mb-5">
-              <p className="text-violet-300 text-xs line-through mb-1">Một buổi coaching 1-1: từ 500.000đ</p>
-              <div className="text-5xl font-black text-white mb-1">99.000đ</div>
-              <div className="text-violet-200 text-sm">/tháng · không tự động gia hạn</div>
-            </div>
-            <ul className="space-y-2.5 text-left mb-6">
-              {[
-                '✓ Toàn bộ 18+ kịch bản sales',
-                '✓ Lộ trình 30 ngày có hướng dẫn',
-                '✓ Bài tập thực hành hằng ngày',
-                '✓ Phân tích tâm lý học chuyên sâu',
-                '✓ Tin nhắn mẫu Zalo/FB/Trực tiếp',
-                '✓ Cập nhật nội dung miễn phí',
-                '✓ Hoàn tiền 7 ngày nếu không hài lòng',
-              ].map((item, i) => (
-                <li key={i} className="text-sm text-white flex items-center gap-2">
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/register"
-              className="block w-full bg-amber-400 hover:bg-amber-300 text-slate-900 font-black text-base py-4 rounded-2xl transition shadow-lg"
-            >
-              Đăng ký ngay — 99.000đ/tháng
-            </Link>
-            <p className="text-violet-300 text-xs mt-3">⚡ Kích hoạt tức thì sau khi chuyển khoản</p>
+      {/* ── PRICING — 3 TIERS ────────────────── */}
+      <section className="py-16 px-4 bg-gradient-to-br from-slate-900 to-violet-950">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-violet-400 text-xs font-bold uppercase tracking-widest mb-2">Chọn mức phù hợp với anh/chị</p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">3 Cách Để Bắt Đầu</h2>
           </div>
-          <p className="text-violet-200 text-xs">
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+            {/* Tier 1 — Membership 99k */}
+            <div className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 flex flex-col">
+              <div className="mb-5">
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Tự học</p>
+                <div className="text-3xl font-black text-white">99.000đ</div>
+                <div className="text-slate-400 text-xs">/tháng · không tự gia hạn</div>
+              </div>
+              <ul className="space-y-2 mb-6 flex-1">
+                {[
+                  '18+ kịch bản sales',
+                  'Lộ trình 30 ngày',
+                  'Bài tập hằng ngày',
+                  'Phân tích tâm lý học',
+                  'Template Zalo/FB',
+                  'Hoàn tiền 7 ngày',
+                ].map((item, i) => (
+                  <li key={i} className="text-sm text-slate-300 flex items-center gap-2">
+                    <span className="text-violet-400">✓</span> {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/register"
+                className="block text-center bg-violet-600 hover:bg-violet-500 text-white font-bold py-3 rounded-xl transition text-sm"
+              >
+                Đăng ký ngay →
+              </Link>
+              <p className="text-center text-xs text-slate-500 mt-2">⚡ Kích hoạt tức thì</p>
+            </div>
+
+            {/* Tier 2 — PRO Bootcamp (MOST POPULAR) */}
+            <div className="bg-blue-600 border border-blue-400 rounded-2xl p-6 flex flex-col relative shadow-2xl shadow-blue-900/50 scale-[1.02]">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-amber-400 text-slate-900 text-xs font-black px-3 py-1 rounded-full">PHỔ BIẾN NHẤT</span>
+              </div>
+              <div className="mb-5 mt-2">
+                <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mb-1">Học có thầy</p>
+                <div className="text-3xl font-black text-white">1.497.000đ</div>
+                <div className="text-blue-200 text-xs">/cohort · 4 tuần · tối đa 20 người</div>
+              </div>
+              <ul className="space-y-2 mb-6 flex-1">
+                {[
+                  'Tất cả trong gói 99k',
+                  '4 buổi live Zoom với Sơn',
+                  'Feedback cá nhân từng bài tập',
+                  'Kịch bản theo đúng ngành',
+                  'Roleplay & review recording',
+                  'Private Telegram 6 tháng',
+                  'Tư vấn riêng 30p (fast-action)',
+                ].map((item, i) => (
+                  <li key={i} className="text-sm text-white flex items-center gap-2">
+                    <span className="text-amber-300">✓</span> {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/bootcamp"
+                className="block text-center bg-white hover:bg-slate-100 text-blue-700 font-black py-3 rounded-xl transition text-sm shadow-lg"
+              >
+                Đăng ký PRO Bootcamp →
+              </Link>
+              <p className="text-center text-xs text-blue-200 mt-2">Hoàn tiền 100% nếu không cải thiện</p>
+            </div>
+
+            {/* Tier 3 — 1:1 Mentoring */}
+            <div className="bg-white/5 backdrop-blur border border-amber-500/30 rounded-2xl p-6 flex flex-col">
+              <div className="mb-5">
+                <p className="text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">Đồng hành cá nhân</p>
+                <div className="text-3xl font-black text-white">6.997.000đ</div>
+                <div className="text-slate-400 text-xs">/3 tháng · tối đa 5 người/tháng</div>
+              </div>
+              <ul className="space-y-2 mb-6 flex-1">
+                {[
+                  '8 buổi 1:1 Zoom với Sơn (90 ngày)',
+                  'Custom scripts cho riêng anh/chị',
+                  'Zalo/WhatsApp direct access',
+                  'Sales call audit 5 buổi',
+                  'PRO Membership 6 tháng',
+                  'Battle plan tuần đầu',
+                  '+30 ngày miễn phí nếu chưa kết quả',
+                ].map((item, i) => (
+                  <li key={i} className="text-sm text-slate-300 flex items-center gap-2">
+                    <span className="text-amber-400">✓</span> {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/mentoring"
+                className="block text-center bg-amber-500 hover:bg-amber-400 text-slate-900 font-black py-3 rounded-xl transition text-sm"
+              >
+                Ứng tuyển Mentoring →
+              </Link>
+              <p className="text-center text-xs text-slate-500 mt-2">Trao đổi 15 phút trước khi xác nhận</p>
+            </div>
+          </div>
+
+          <p className="text-center text-slate-500 text-xs mt-8">
             Câu hỏi? Liên hệ{' '}
-            <a href="tel:0961588227" className="text-white font-bold underline">0961 588 227</a>
+            <a href="tel:0961588227" className="text-violet-400 font-bold">0961 588 227</a>
             {' '}— Hán Văn Sơn
           </p>
         </div>

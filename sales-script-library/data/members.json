@@ -1,0 +1,16 @@
+[
+  {
+    "id": "member-001",
+    "name": "Nguyễn Thị Lan",
+    "email": "lan.nguyen@example.com",
+    "password": "demo123",
+    "createdAt": "2026-01-01T00:00:00Z"
+  },
+  {
+    "id": "member-002",
+    "name": "Trần Văn Minh",
+    "email": "minh.tran@example.com",
+    "password": "demo123",
+    "createdAt": "2026-01-05T00:00:00Z"
+  }
+]

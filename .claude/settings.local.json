@@ -1,5 +1,12 @@
 {
   "permissions": {
-    "allow": []
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3000/)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(npx vercel *)",
+      "Bash(node -e ' *)"
+    ]
   }
 }

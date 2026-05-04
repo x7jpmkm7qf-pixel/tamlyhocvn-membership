@@ -1,0 +1,270 @@
+[
+  {
+    "week": 1,
+    "theme": "Nền tảng Giao tiếp Bán hàng",
+    "description": "Xây dựng nền móng vững chắc — cách mở đầu, tạo kết nối và khám phá nhu cầu khách hàng",
+    "days": [
+      {
+        "day": 1,
+        "title": "Nghệ thuật mở đầu không bị từ chối",
+        "scriptId": "script-006",
+        "psychPrinciple": "Hiệu ứng ban đầu (First Impression Effect)",
+        "challenge": "Hôm nay nhắn tin mở đầu cho 5 khách hàng tiềm năng theo kịch bản — không giới thiệu sản phẩm, chỉ tạo kết nối",
+        "tip": "80% quyết định mua xảy ra trong 30 giây đầu. Đừng bán hàng ngay — hãy làm bạn trước."
+      },
+      {
+        "day": 2,
+        "title": "Xây dựng Rapport — khách thấy bạn là người của họ",
+        "scriptId": "script-007",
+        "psychPrinciple": "Nguyên tắc Tương đồng (Liking & Similarity)",
+        "challenge": "Tìm 3 điểm chung với khách hàng hôm nay (quê quán, sở thích, ngành nghề) và đưa vào cuộc trò chuyện tự nhiên",
+        "tip": "Người mua từ người họ thích. Tìm điểm chung trước khi trình bày sản phẩm."
+      },
+      {
+        "day": 3,
+        "title": "SPIN — 4 câu hỏi khiến khách tự thuyết phục mình",
+        "scriptId": "script-008",
+        "psychPrinciple": "Kỹ thuật SPIN Selling (Rackham)",
+        "challenge": "Thực hành đặt đủ 4 loại câu hỏi SPIN trong 1 cuộc trò chuyện với khách hôm nay. Ghi lại kết quả.",
+        "tip": "Khách tự nói ra vấn đề của họ thì thuyết phục gấp 10 lần bạn nói thay họ."
+      },
+      {
+        "day": 4,
+        "title": "Trình bày giải pháp theo ngôn ngữ của khách",
+        "scriptId": "script-009",
+        "psychPrinciple": "Kỹ thuật Mirroring & Matching",
+        "challenge": "Trong cuộc trò chuyện hôm nay, dùng đúng từ ngữ của khách để trình bày sản phẩm — không dùng thuật ngữ kỹ thuật",
+        "tip": "Khi khách nghe lại chính từ ngữ của họ — họ cảm thấy bạn thực sự hiểu họ."
+      },
+      {
+        "day": 5,
+        "title": "Chốt thử — đo nhiệt độ quyết định của khách",
+        "scriptId": "script-010",
+        "psychPrinciple": "Trial Close & Temperature Check",
+        "challenge": "Dùng câu chốt thử ít nhất 2 lần trong cuộc trò chuyện hôm nay. Ghi lại phản ứng của khách.",
+        "tip": "Chốt thử không phải bán hàng — đó là cách đo khách đang ở đâu trong hành trình quyết định."
+      },
+      {
+        "day": 6,
+        "title": "Chốt sale đơn giản — 3 kỹ thuật không áp lực",
+        "scriptId": "script-001",
+        "psychPrinciple": "Assumptive Close & Choice Architecture",
+        "challenge": "Thử dùng kỹ thuật Assumptive Close ('Anh/chị muốn giao hàng địa chỉ nhà hay công ty?') với ít nhất 1 khách hôm nay",
+        "tip": "Câu hỏi giả định rằng khách đã mua — não người không muốn phủ nhận điều đã được chấp nhận ngầm."
+      },
+      {
+        "day": 7,
+        "title": "Tổng kết Tuần 1 — Điểm lại & Kế hoạch Tuần 2",
+        "scriptId": null,
+        "psychPrinciple": "Spaced Repetition — Ôn tập có khoảng cách",
+        "challenge": "Viết ra 3 tình huống tuần này: 1 thành công, 1 thất bại, 1 chưa chắc. Phân tích lý do và kế hoạch cải thiện.",
+        "tip": "Học không có phản tư là học mà không nhớ. 20 phút nhìn lại = tăng 40% hiệu quả tuần sau."
+      }
+    ]
+  },
+  {
+    "week": 2,
+    "theme": "Xử lý Từ chối Chuyên nghiệp",
+    "description": "Biến mọi lời từ chối thành cơ hội — 7 tình huống từ chối phổ biến nhất với kịch bản xử lý chi tiết",
+    "days": [
+      {
+        "day": 8,
+        "title": "Khách chê đắt — Kỹ thuật tái định vị giá trị",
+        "scriptId": "script-001",
+        "psychPrinciple": "Anchoring Effect & Value Reframing",
+        "challenge": "Khi khách nói 'đắt' hôm nay — đừng giảm giá. Thay vào đó chia nhỏ chi phí theo ngày/tuần và so sánh với thứ khách đang tiêu hàng ngày",
+        "tip": "3 triệu nghe lớn. 100.000đ/ngày trong 30 ngày = 1 ly cà phê. Não người xử lý số nhỏ dễ hơn nhiều."
+      },
+      {
+        "day": 9,
+        "title": "Khách chê đắt — Kỹ thuật ROI & đầu tư",
+        "scriptId": "script-001",
+        "psychPrinciple": "Loss Aversion — Sợ mất mát",
+        "challenge": "Tính ROI cụ thể cho sản phẩm bạn đang bán: nếu khách dùng sản phẩm này, họ kiếm thêm/tiết kiệm được bao nhiêu? Trình bày con số đó với khách hôm nay.",
+        "tip": "Người ta không mua sản phẩm — họ mua kết quả. Khi ROI rõ ràng, giá không còn là vấn đề."
+      },
+      {
+        "day": 10,
+        "title": "Khách nói 'để suy nghĩ thêm'",
+        "scriptId": "script-011",
+        "psychPrinciple": "Status Quo Bias & Decision Fatigue",
+        "challenge": "Khi khách nói 'để suy nghĩ' hôm nay — hỏi thẳng: 'Anh/chị đang cân nhắc điều gì cụ thể?' Đừng để cuộc trò chuyện kết thúc mà không biết rào cản thật sự.",
+        "tip": "'Để suy nghĩ' 90% có nghĩa là 'chưa thấy đủ lý do để mua ngay'. Nhiệm vụ của bạn: tìm ra lý do đó."
+      },
+      {
+        "day": 11,
+        "title": "Khách so sánh với đối thủ",
+        "scriptId": "script-012",
+        "psychPrinciple": "Decoy Effect & Contrast Principle",
+        "challenge": "Chuẩn bị bảng so sánh 5 tiêu chí quan trọng nhất giữa sản phẩm của bạn và đối thủ chính. Dùng nó khi khách nhắc đến đối thủ hôm nay.",
+        "tip": "Đừng sợ so sánh — hãy kiểm soát tiêu chí so sánh. Bạn chọn chiến trường thì bạn thắng."
+      },
+      {
+        "day": 12,
+        "title": "Khách nói 'không có tiền' hoặc 'hết ngân sách'",
+        "scriptId": "script-013",
+        "psychPrinciple": "Pain vs Pleasure — Đau hiện tại vs Vui tương lai",
+        "challenge": "Khi khách nói không có tiền — đừng bỏ qua. Hỏi: 'Nếu ngân sách không phải vấn đề, anh/chị có muốn mua không?' Câu trả lời cho bạn biết đây là từ chối thật hay từ chối tạm thời.",
+        "tip": "Không có tiền ≠ không muốn mua. Khi nhu cầu đủ lớn, người ta luôn tìm ra tiền."
+      },
+      {
+        "day": 13,
+        "title": "Khách cần hỏi ý kiến vợ/chồng/sếp",
+        "scriptId": "script-014",
+        "psychPrinciple": "Social Influence & Authority Bias",
+        "challenge": "Đừng chỉ nói 'anh cứ hỏi nhé'. Hôm nay thử đề nghị: 'Anh/chị muốn em trình bày thẳng với vợ/chồng/sếp luôn không ạ?' — tỷ lệ chốt tăng gấp đôi.",
+        "tip": "Người quyết định cuối cùng không được nghe pitch của bạn = cơ hội bị giảm 70%."
+      },
+      {
+        "day": 14,
+        "title": "Tổng kết Tuần 2 — Xây dựng Bộ phản xạ Xử lý từ chối",
+        "scriptId": null,
+        "psychPrinciple": "Muscle Memory — Phản xạ có điều kiện",
+        "challenge": "Cùng một người bạn đóng vai: thực hành xử lý 5 loại từ chối tuần này cho đến khi trả lời tự nhiên, không cần nhìn kịch bản.",
+        "tip": "Xử lý từ chối là kỹ năng cơ bắp — tập nhiều thì thành phản xạ tự nhiên."
+      }
+    ]
+  },
+  {
+    "week": 3,
+    "theme": "Tâm lý học Nâng cao",
+    "description": "6 nguyên tắc ảnh hưởng của Cialdini ứng dụng thực tế vào từng tình huống bán hàng hàng ngày",
+    "days": [
+      {
+        "day": 15,
+        "title": "Khan hiếm — tạo urgency thật, không giả tạo",
+        "scriptId": "script-015",
+        "psychPrinciple": "Scarcity Principle (Cialdini)",
+        "challenge": "Hôm nay tìm ra 1 điều THẬT SỰ khan hiếm trong sản phẩm/dịch vụ của bạn (slot, thời gian, số lượng, chính sách) và đưa vào cuộc trò chuyện.",
+        "tip": "Khan hiếm giả tạo phá vỡ trust. Khan hiếm thật tạo quyết định. Khách hàng ngày nay rất nhạy với sự thao túng."
+      },
+      {
+        "day": 16,
+        "title": "Bằng chứng xã hội — để khách khác thuyết phục thay bạn",
+        "scriptId": "script-016",
+        "psychPrinciple": "Social Proof (Cialdini)",
+        "challenge": "Thu thập 3 testimonial thật từ khách hàng cũ hôm nay (nhắn tin xin feedback). Đăng lên story/post để tạo social proof liên tục.",
+        "tip": "1 review thật = 100 lần bạn nói 'sản phẩm tốt lắm'. Khách tin người giống họ hơn tin người bán."
+      },
+      {
+        "day": 17,
+        "title": "Uy tín & Quyền lực — vì sao khách nghe người này mà không nghe người kia",
+        "scriptId": "script-017",
+        "psychPrinciple": "Authority Principle (Cialdini)",
+        "challenge": "Liệt kê 5 credential của bạn (kinh nghiệm, kết quả, chứng chỉ, số liệu). Đưa 1-2 credential phù hợp vào đầu cuộc trò chuyện hôm nay.",
+        "tip": "Không phải khoe khoang — là định vị chuyên môn. Người ta mua từ chuyên gia, không phải người bán hàng."
+      },
+      {
+        "day": 18,
+        "title": "Có đi có lại — cho trước để nhận sau",
+        "scriptId": "script-018",
+        "psychPrinciple": "Reciprocity Principle (Cialdini)",
+        "challenge": "Hôm nay cho đi 1 giá trị miễn phí thật sự hữu ích cho khách (bài viết, mẹo, thông tin) — không kèm theo pitch bán hàng nào.",
+        "tip": "Não người cảm thấy 'nợ' khi nhận được giá trị. Cho đi trước là đầu tư, không phải thua lỗ."
+      },
+      {
+        "day": 19,
+        "title": "Cam kết & Nhất quán — giữ lời nhỏ để chốt lớn",
+        "scriptId": "script-019",
+        "psychPrinciple": "Commitment & Consistency (Cialdini)",
+        "challenge": "Lấy 1 micro-commitment từ khách hôm nay (đồng ý xem demo, đồng ý nhận thông tin, đồng ý gặp ngắn 15 phút). Theo dõi tỷ lệ chốt sau đó.",
+        "tip": "Người đã đồng ý điều nhỏ khó từ chối điều lớn hơn — họ muốn nhất quán với quyết định trước."
+      },
+      {
+        "day": 20,
+        "title": "Cảm xúc vs Lý trí — bán cho trái tim, chứng minh với khối óc",
+        "scriptId": "script-020",
+        "psychPrinciple": "Emotional Selling & Rational Justification",
+        "challenge": "Trong pitch hôm nay: bắt đầu bằng câu chuyện cảm xúc (trước/sau, transformation), sau đó đưa số liệu/logic để củng cố. Đảo ngược thứ tự thông thường.",
+        "tip": "Khách mua bằng cảm xúc, biện minh bằng lý trí. Đánh vào đúng thứ tự này."
+      },
+      {
+        "day": 21,
+        "title": "Tổng kết Tuần 3 — Xây dựng Hệ thống Tâm lý cá nhân",
+        "scriptId": null,
+        "psychPrinciple": "Integration & Personalization",
+        "challenge": "Chọn 2 nguyên tắc tâm lý phù hợp nhất với phong cách bán hàng của bạn. Viết ra cách bạn sẽ áp dụng chúng vào mọi cuộc trò chuyện từ giờ.",
+        "tip": "Không phải tất cả nguyên tắc đều phù hợp với tất cả mọi người. Tìm ra phong cách của bạn."
+      }
+    ]
+  },
+  {
+    "week": 4,
+    "theme": "Kịch bản Chuyên ngành & Nâng cao",
+    "description": "Kịch bản thực chiến cho từng ngành + chiến lược upsell, follow-up và xây dựng khách hàng trung thành",
+    "days": [
+      {
+        "day": 22,
+        "title": "BĐS — Chốt cọc khi khách vẫn còn phân vân",
+        "scriptId": "script-001",
+        "psychPrinciple": "Commitment Device & Sunk Cost",
+        "challenge": "Chuẩn bị kịch bản chốt cọc 3 bước: (1) tóm tắt lợi ích, (2) tạo urgency thật, (3) đề nghị cọc nhỏ giữ chỗ. Thực hành với đồng nghiệp trước.",
+        "tip": "Cọc nhỏ = cam kết lớn. Khi đã đặt cọc, khách tâm lý đã là chủ sở hữu — rất khó bỏ."
+      },
+      {
+        "day": 23,
+        "title": "Bảo hiểm — Buổi tư vấn đầu tiên không bị cảm giác bị bán hàng",
+        "scriptId": "script-002",
+        "psychPrinciple": "Consultative Selling & Trust Building",
+        "challenge": "Thiết kế lại buổi gặp đầu tiên: 70% hỏi và nghe, 30% trình bày. Mục tiêu buổi 1 chỉ là hiểu khách — không phải bán.",
+        "tip": "Khách bảo hiểm bỏ chạy vì cảm thấy bị push. Buổi đầu không bán = tăng 3x tỷ lệ gặp lần 2."
+      },
+      {
+        "day": 24,
+        "title": "Mỹ phẩm — Chốt sale trên livestream và story",
+        "scriptId": "script-003",
+        "psychPrinciple": "FOMO & Live Social Proof",
+        "challenge": "Lên live 15 phút hôm nay: không giới thiệu sản phẩm ngay — kể câu chuyện của 1 khách hàng thật trước, rồi mới demo sản phẩm.",
+        "tip": "Viewer xem live muốn được entertained trước, informed sau. Story → Demo → Offer — đúng thứ tự này."
+      },
+      {
+        "day": 25,
+        "title": "F&B — Upsell và tăng giá trị đơn hàng",
+        "scriptId": "script-004",
+        "psychPrinciple": "Upsell Psychology & Bundle Effect",
+        "challenge": "Thiết kế 1 combo/bundle mới cho F&B của bạn: kết hợp sản phẩm có margin cao với sản phẩm phổ biến. Test với 10 khách hôm nay.",
+        "tip": "Khách đã quyết định mua = trạng thái mua. Upsell đúng lúc tăng 30% giá trị đơn hàng mà không cần thêm khách."
+      },
+      {
+        "day": 26,
+        "title": "Follow-up đỉnh cao — biến khách lạnh thành khách nóng",
+        "scriptId": "script-005",
+        "psychPrinciple": "Pattern Interrupt & Re-engagement",
+        "challenge": "Lấy 10 khách đã 'lạnh' (không reply quá 2 tuần). Gửi tin nhắn theo kịch bản Pattern Interrupt — không nhắc sản phẩm, chỉ share giá trị. Đếm tỷ lệ reply.",
+        "tip": "Khách lạnh không có nghĩa là không quan tâm — họ chỉ không còn nhớ đến bạn. Nhiệm vụ: xuất hiện lại khác đi."
+      },
+      {
+        "day": 27,
+        "title": "Xây dựng khách hàng trung thành — hệ thống chăm sóc sau bán",
+        "scriptId": "script-021",
+        "psychPrinciple": "Post-Purchase Rationalization & LTV Optimization",
+        "challenge": "Thiết kế quy trình 3 bước chăm sóc sau bán: (1) cảm ơn + confirm kỳ vọng ngay sau mua, (2) check-in ngày 7, (3) hỏi testimonial ngày 30.",
+        "tip": "Chi phí giữ khách cũ = 1/5 chi phí tìm khách mới. Đầu tư vào after-sale là ROI cao nhất."
+      },
+      {
+        "day": 28,
+        "title": "Biến khách hàng thành người giới thiệu (Referral)",
+        "scriptId": "script-022",
+        "psychPrinciple": "Reciprocity + Social Currency",
+        "challenge": "Liên hệ 5 khách hài lòng nhất. Hỏi thẳng: 'Anh/chị có ai cần [sản phẩm] không? Em có chính sách ưu đãi cho người được giới thiệu.' Xem có bao nhiêu giới thiệu.",
+        "tip": "Khách hài lòng MUỐN giới thiệu — họ chỉ cần được nhắc và được tạo điều kiện dễ dàng."
+      },
+      {
+        "day": 29,
+        "title": "Tổng kết 4 tuần — Đo lường & Điều chỉnh hệ thống",
+        "scriptId": null,
+        "psychPrinciple": "Feedback Loop & Continuous Improvement",
+        "challenge": "Điền vào bảng đo lường: tỷ lệ chốt tuần 1 vs tuần 4, số khách tiếp cận được, doanh thu, và 3 kịch bản hiệu quả nhất của bạn.",
+        "tip": "Không đo lường = không cải thiện. Số liệu trung thực hơn cảm giác."
+      },
+      {
+        "day": 30,
+        "title": "Kế hoạch tháng tiếp — Nâng cấp lên tầm chuyên gia",
+        "scriptId": null,
+        "psychPrinciple": "Growth Mindset & Deliberate Practice",
+        "challenge": "Viết ra: (1) Kỹ năng cần cải thiện nhất, (2) Kịch bản sẽ master tháng tới, (3) Mục tiêu doanh số cụ thể. Chia sẻ với cộng đồng để tạo accountability.",
+        "tip": "Chuyên gia không phải người không mắc lỗi — họ là người học từ lỗi nhanh hơn người khác."
+      }
+    ]
+  }
+]
