@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 
@@ -29,9 +30,9 @@ const FAQS = [
 ]
 
 export default function BootcampPage() {
+  const router = useRouter()
   const [form, setForm] = useState({ name: '', email: '', phone: '', industry: '', note: '' })
   const [loading, setLoading] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,7 +50,9 @@ export default function BootcampPage() {
         body: JSON.stringify(form),
       })
       if (res.ok) {
-        setSubmitted(true)
+        // Redirect sang trang QR thanh toán
+        const params = new URLSearchParams({ name: form.name, email: form.email })
+        router.push(`/bootcamp/payment?${params}`)
       } else {
         setError('Có lỗi xảy ra. Vui lòng thử lại hoặc liên hệ 0961 588 227.')
       }
@@ -232,42 +235,10 @@ export default function BootcampPage() {
             <h2 className="text-2xl font-extrabold text-slate-900">
               Cohort tháng tới — Còn <span className="text-blue-600">20 suất</span>
             </h2>
-            <p className="text-slate-500 text-sm mt-2">Điền thông tin, Sơn sẽ gửi hướng dẫn thanh toán và xác nhận suất ngay.</p>
+            <p className="text-slate-500 text-sm mt-2">Điền thông tin bên dưới — hệ thống sẽ tạo mã QR thanh toán ngay lập tức.</p>
           </div>
 
-          {submitted ? (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-8 text-center">
-              <div className="text-5xl mb-4">🎉</div>
-              <h3 className="text-xl font-black text-emerald-800 mb-2">Đăng ký thành công!</h3>
-              <p className="text-emerald-700 text-sm leading-relaxed mb-4">
-                Sơn đã nhận được thông tin của anh/chị. Vui lòng chuyển khoản để giữ suất:
-              </p>
-              <div className="bg-white border border-emerald-200 rounded-xl p-4 text-left space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Ngân hàng</span>
-                  <span className="font-bold">MB Bank</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Số tài khoản</span>
-                  <span className="font-bold">0984899999</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Chủ tài khoản</span>
-                  <span className="font-bold">HAN VAN SON</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Số tiền</span>
-                  <span className="font-bold text-blue-600">1.497.000đ</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Nội dung CK</span>
-                  <span className="font-bold text-violet-600">PRO {form.email}</span>
-                </div>
-              </div>
-              <p className="text-xs text-emerald-600">Sau khi chuyển khoản, Sơn sẽ xác nhận suất trong vòng 2 tiếng qua Zalo/điện thoại.</p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+          <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-700 text-sm">{error}</div>
               )}
@@ -338,10 +309,9 @@ export default function BootcampPage() {
               </button>
 
               <p className="text-xs text-slate-400 text-center">
-                Sau khi đăng ký, Sơn sẽ gửi thông tin chuyển khoản và xác nhận suất qua Zalo trong 2 tiếng.
+                Sau khi điền form, hệ thống tạo mã QR ngay — quét và thanh toán, suất tự động xác nhận.
               </p>
             </form>
-          )}
         </div>
       </section>
 

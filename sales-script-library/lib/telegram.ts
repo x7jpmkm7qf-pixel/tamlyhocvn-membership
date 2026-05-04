@@ -123,6 +123,60 @@ export async function notifyBootcampLead(data: {
   await sendTelegramMessage(text)
 }
 
+/** Thông báo khi PRO Bootcamp thanh toán xác nhận */
+export async function notifyBootcampPaid(data: {
+  name: string
+  email: string
+  phone: string
+  industry: string
+  amount: number
+  transferContent: string
+  referenceCode?: string
+}) {
+  const text = [
+    '✅ <b>PRO Bootcamp — Đã thanh toán!</b>',
+    '',
+    `👤 <b>Tên:</b> ${data.name}`,
+    `📞 <b>SĐT:</b> <code>${data.phone}</code>`,
+    `📧 <b>Email:</b> <code>${data.email}</code>`,
+    `🏷️ <b>Ngành:</b> ${data.industry}`,
+    `💰 <b>Số tiền:</b> ${data.amount.toLocaleString('vi-VN')}đ`,
+    `📝 <b>Nội dung CK:</b> ${data.transferContent}`,
+    data.referenceCode ? `🔑 <b>Mã GD:</b> <code>${data.referenceCode}</code>` : '',
+    '',
+    '🎓 Xác nhận suất và gửi thông tin Zoom cho học viên!',
+  ].filter(Boolean).join('\n')
+
+  await sendTelegramMessage(text)
+}
+
+/** Thông báo khi 1:1 Mentoring thanh toán xác nhận */
+export async function notifyMentoringPaid(data: {
+  name: string
+  email: string
+  phone: string
+  industry: string
+  amount: number
+  transferContent: string
+  referenceCode?: string
+}) {
+  const text = [
+    '✅ <b>1:1 Mentoring — Đã thanh toán!</b>',
+    '',
+    `👤 <b>Tên:</b> ${data.name}`,
+    `📞 <b>SĐT:</b> <code>${data.phone}</code>`,
+    `📧 <b>Email:</b> <code>${data.email}</code>`,
+    `🏷️ <b>Ngành:</b> ${data.industry}`,
+    `💰 <b>Số tiền:</b> ${data.amount.toLocaleString('vi-VN')}đ`,
+    `📝 <b>Nội dung CK:</b> ${data.transferContent}`,
+    data.referenceCode ? `🔑 <b>Mã GD:</b> <code>${data.referenceCode}</code>` : '',
+    '',
+    '🏆 Liên hệ mentee để đặt lịch buổi đầu tiên trong 24h!',
+  ].filter(Boolean).join('\n')
+
+  await sendTelegramMessage(text)
+}
+
 /** Thông báo khi có người ứng tuyển 1:1 Mentoring */
 export async function notifyMentoringApplication(data: {
   name: string
