@@ -38,7 +38,9 @@ function PaymentContent() {
   const email  = params.get('email') || ''
   const name   = params.get('name')  || ''
 
-  const transferContent = `PRO ${email}`
+  // Normalize email: bỏ @ và . để MB Bank không strip mất ký tự
+  const emailNorm = email.toLowerCase().replace(/[@.]/g, '')
+  const transferContent = `PRO ${emailNorm}`
   const qrUrl = getVietQR(transferContent)
 
   const [qrLoaded, setQrLoaded]           = useState(false)

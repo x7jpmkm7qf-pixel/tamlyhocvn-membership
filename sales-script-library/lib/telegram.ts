@@ -46,7 +46,7 @@ export async function notifyNewRegistration(data: {
     `📧 <b>Email:</b> <code>${data.email}</code>`,
     data.phone ? `📞 <b>SĐT:</b> ${data.phone}` : '',
     '',
-    `💳 <b>Nội dung CK cần khớp:</b> <code>MSL ${data.email}</code>`,
+    `💳 <b>Nội dung CK cần khớp:</b> <code>MSL ${data.email.toLowerCase().replace(/[@.]/g, '')}</code>`,
     `💰 <b>Số tiền:</b> 99.000đ`,
     '',
     '⏳ Chờ xác nhận chuyển khoản...',
@@ -115,7 +115,7 @@ export async function notifyBootcampLead(data: {
     '💳 <b>Hướng dẫn thanh toán:</b>',
     `MB Bank · 0984899999 · HAN VAN SON`,
     `Số tiền: <b>1.497.000đ</b>`,
-    `Nội dung CK: <code>PRO ${data.email}</code>`,
+    `Nội dung CK: <code>PRO ${data.email.toLowerCase().replace(/[@.]/g, '')}</code>`,
     '',
     '⚡ Liên hệ xác nhận suất qua Zalo/điện thoại trong 2 tiếng!',
   ].filter(Boolean).join('\n')
