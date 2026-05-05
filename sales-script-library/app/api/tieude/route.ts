@@ -16,6 +16,31 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
+// CORS — cho phép landing page (tieude-landing.vercel.app + custom domain) gọi demo
+const ALLOWED_ORIGINS = [
+  'https://tieude-landing.vercel.app',
+  'https://www.tamlyhocvn.club',
+  'https://tamlyhocvn.club',
+]
+
+function corsHeaders(origin: string | null): Record<string, string> {
+  const allow = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin',
+  }
+}
+
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, {
+    status: 204,
+    headers: corsHeaders(req.headers.get('origin')),
+  })
+}
+
 const SYSTEM_PROMPT = fs.readFileSync(
   path.join(process.cwd(), 'lib', 'tieude-system-prompt.txt'),
   'utf-8'
@@ -94,6 +119,7 @@ function mockReply(messages: ChatMessage[], ctx: UserContext): string {
 }
 
 export async function POST(req: NextRequest) {
+  const cors = corsHeaders(req.headers.get('origin'))
   try {
     const ip =
       req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
@@ -105,7 +131,7 @@ export async function POST(req: NextRequest) {
         {
           reply: '🍵 Tiểu đệ đang nghỉ tay một chút, sư huynh đợi 1 phút rồi chat lại nhé.',
         },
-        { status: 429 }
+        { status: 429, headers: cors }
       )
     }
 
@@ -116,14 +142,14 @@ export async function POST(req: NextRequest) {
     if (!Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
         { reply: '🙏 Sư huynh chưa gõ gì, tiểu đệ chưa hiểu.' },
-        { status: 400 }
+        { status: 400, headers: cors }
       )
     }
 
     const safe = sanitizeMessages(messages)
 
     if (MOCK) {
-      return NextResponse.json({ reply: mockReply(safe, userContext), mock: true })
+      return NextResponse.json({ reply: mockReply(safe, userContext), mock: true }, { headers: cors })
     }
 
     if (!process.env.ANTHROPIC_API_KEY?.trim()) {
@@ -132,7 +158,7 @@ export async function POST(req: NextRequest) {
           reply:
             "🙏 Tiểu đệ chưa được sư phụ trao 'lệnh bài' (API key). Sư huynh nhắn sư phụ giúp em với?",
         },
-        { status: 500 }
+        { status: 500, headers: cors }
       )
     }
 
@@ -157,7 +183,7 @@ export async function POST(req: NextRequest) {
       (response.content?.[0] as { type: string; text?: string })?.text ||
       '🙏 Tiểu đệ chưa nghe rõ, sư huynh nói lại nhé?'
 
-    return NextResponse.json({ reply, usage: response.usage })
+    return NextResponse.json({ reply, usage: response.usage }, { headers: cors })
   } catch (err) {
     console.error('[Tiểu Đệ] error:', err instanceof Error ? err.message : err)
     return NextResponse.json(
@@ -165,11 +191,14 @@ export async function POST(req: NextRequest) {
         reply:
           '🙏 Tiểu đệ vừa lỡ tay đánh rơi chén trà... Sư huynh chat lại giúp em với?',
       },
-      { status: 500 }
+      { status: 500, headers: cors }
     )
   }
 }
 
-export async function GET() {
-  return NextResponse.json({ ok: true, model: MODEL, mock: MOCK })
+export async function GET(req: NextRequest) {
+  return NextResponse.json(
+    { ok: true, model: MODEL, mock: MOCK },
+    { headers: corsHeaders(req.headers.get('origin')) }
+  )
 }
