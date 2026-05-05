@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import DailyCheckIn from '@/components/DailyCheckIn'
 import EmailVerificationBanner from '@/components/EmailVerificationBanner'
+import TieuDeChatbot, { type TieuDeContext } from '@/components/TieuDeChatbot'
 import { isDayCompleted, getStreak } from '@/lib/progress'
 
 interface RoadmapDay {
@@ -102,6 +103,31 @@ export default function DashboardPage() {
 
   const memberName = session.member?.name?.split(' ').pop() || 'bạn'
   const progressPct = Math.round((todayDay / 30) * 100)
+
+  // Build context cho Tiểu Đệ chatbot
+  const tieudeContext: TieuDeContext | null = session.member
+    ? {
+        user_name: memberName,
+        user_gender: 'unknown', // chưa lưu gender trong member
+        streak_days: streak,
+        today_missions: todayData
+          ? [`Ngày ${todayData.day.day}: ${todayData.day.title}`]
+          : [],
+        completed_today: todayDone && todayData
+          ? [`Ngày ${todayData.day.day}: ${todayData.day.title}`]
+          : [],
+        current_lesson: todayData?.day.title || '',
+        last_visit: 'vừa nãy',
+        lesson_kb: todayData
+          ? [
+              `Bài hôm nay (Ngày ${todayData.day.day}): ${todayData.day.title}`,
+              `Nguyên lý tâm lý: ${todayData.day.psychPrinciple}`,
+              `Thử thách: ${todayData.day.challenge}`,
+              `Mẹo: ${todayData.day.tip}`,
+            ].join('\n')
+          : '',
+      }
+    : null
 
   return (
     <div className="min-h-screen">
@@ -305,6 +331,8 @@ export default function DashboardPage() {
 
         <div className="h-4" />
       </div>
+
+      {tieudeContext && <TieuDeChatbot context={tieudeContext} />}
     </div>
   )
 }
