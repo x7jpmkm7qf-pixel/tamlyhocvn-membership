@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import DailyCheckIn from '@/components/DailyCheckIn'
+import EmailVerificationBanner from '@/components/EmailVerificationBanner'
 import { isDayCompleted, getStreak } from '@/lib/progress'
 
 interface RoadmapDay {
@@ -23,7 +24,7 @@ interface RoadmapWeek {
 }
 
 interface Session {
-  member: { id: string; name: string; email: string } | null
+  member: { id: string; name: string; email: string; emailVerified?: boolean; expiresAt?: string | null; daysLeft?: number | null } | null
   isAdmin: boolean
 }
 
@@ -46,7 +47,14 @@ export default function DashboardPage() {
       .then(r => r.json())
       .then(data => {
         setSession(data)
-        if (!data.member && !data.isAdmin) router.push('/login')
+        if (!data.member && !data.isAdmin) {
+          router.push('/login')
+          return
+        }
+        // Lock tài khoản hết hạn — admin không bị ảnh hưởng
+        if (data.member && data.member.daysLeft !== null && data.member.daysLeft !== undefined && data.member.daysLeft < 0) {
+          router.push('/renew')
+        }
       })
   }, [])
 
@@ -104,6 +112,40 @@ export default function DashboardPage() {
       )}
 
       <div className="max-w-3xl mx-auto px-4 py-6 space-y-5">
+
+        {session.member && !session.member.emailVerified && (
+          <EmailVerificationBanner email={session.member.email} />
+        )}
+
+        {/* Renewal warning banner — hiển thị khi còn ≤ 7 ngày */}
+        {session.member && session.member.daysLeft !== null && session.member.daysLeft !== undefined && session.member.daysLeft >= 0 && session.member.daysLeft <= 7 && (
+          <div className={`rounded-2xl px-5 py-4 flex items-center justify-between gap-3 ${
+            session.member.daysLeft <= 2
+              ? 'bg-red-50 border border-red-200'
+              : 'bg-amber-50 border border-amber-200'
+          }`}>
+            <div>
+              <p className={`text-sm font-bold ${session.member.daysLeft <= 2 ? 'text-red-700' : 'text-amber-700'}`}>
+                {session.member.daysLeft === 0
+                  ? '⛔ Tài khoản hết hạn hôm nay!'
+                  : `⚠️ Còn ${session.member.daysLeft} ngày — Tài khoản sắp hết hạn`}
+              </p>
+              <p className={`text-xs mt-0.5 ${session.member.daysLeft <= 2 ? 'text-red-600' : 'text-amber-600'}`}>
+                Gia hạn ngay để không bị gián đoạn truy cập kịch bản
+              </p>
+            </div>
+            <Link
+              href="/renew"
+              className={`shrink-0 text-xs font-bold px-4 py-2 rounded-xl transition ${
+                session.member.daysLeft <= 2
+                  ? 'bg-red-600 hover:bg-red-700 text-white'
+                  : 'bg-amber-500 hover:bg-amber-600 text-white'
+              }`}
+            >
+              Gia hạn 99k →
+            </Link>
+          </div>
+        )}
 
         {/* Greeting hero */}
         <div className="relative glass rounded-2xl p-5 overflow-hidden">

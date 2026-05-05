@@ -25,6 +25,13 @@ export interface Member {
   // PayOS payment tracking
   orderCode?: number
   paymentLinkId?: string
+  // Email verification
+  emailVerified?: boolean
+  verificationToken?: string
+  verificationTokenExpiresAt?: string
+  verificationSentAt?: string
+  // Renewal tracking
+  lastReferenceCode?: string   // SePay reference of last confirmed payment
 }
 
 // ── File-based storage (read-only, for static content) ─────────────────────
@@ -107,6 +114,11 @@ export async function getMember(email: string): Promise<Member | undefined> {
 export async function getMemberByOrderCode(orderCode: number): Promise<Member | undefined> {
   const members = await getMembers()
   return members.find(m => m.orderCode === orderCode)
+}
+
+export async function getMemberByVerificationToken(token: string): Promise<Member | undefined> {
+  const members = await getMembers()
+  return members.find(m => m.verificationToken === token)
 }
 
 export async function saveMember(member: Member): Promise<void> {

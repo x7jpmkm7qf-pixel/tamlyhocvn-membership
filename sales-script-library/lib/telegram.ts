@@ -177,6 +177,35 @@ export async function notifyMentoringPaid(data: {
   await sendTelegramMessage(text)
 }
 
+/** Thông báo danh sách thành viên sắp hết hạn (dùng bởi cron) */
+export async function notifyExpiringMembers(members: Array<{
+  name: string
+  email: string
+  phone?: string
+  expiresAt: string
+  daysLeft: number
+}>) {
+  if (members.length === 0) return
+
+  const lines = [
+    `⏰ <b>Nhắc gia hạn — ${new Date().toLocaleDateString('vi-VN')}</b>`,
+    `Có <b>${members.length} thành viên</b> sắp hết hạn trong 3 ngày:`,
+    '',
+  ]
+
+  members.forEach((m, i) => {
+    const expDate = new Date(m.expiresAt).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })
+    lines.push(`${i + 1}. <b>${m.name}</b>`)
+    lines.push(`   📧 <code>${m.email}</code>${m.phone ? ` · 📞 ${m.phone}` : ''}`)
+    lines.push(`   📅 Hết hạn: <b>${expDate}</b> (còn ${m.daysLeft} ngày)`)
+    lines.push('')
+  })
+
+  lines.push('👉 Liên hệ qua Zalo để nhắc gia hạn!')
+
+  await sendTelegramMessage(lines.join('\n'))
+}
+
 /** Thông báo khi có người tải lead magnet miễn phí */
 export async function notifyFreeLead(data: {
   name: string

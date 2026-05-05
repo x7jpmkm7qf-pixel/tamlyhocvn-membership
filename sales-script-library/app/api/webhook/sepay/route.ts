@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
 
     // ── 6. Kích hoạt tài khoản ────────────────────────────────
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-    await saveMember({ ...member, status: 'active', expiresAt })
+    await saveMember({ ...member, status: 'active', expiresAt, lastReferenceCode: payload.referenceCode })
     console.log('[SePay] ✅ Đã kích hoạt tài khoản:', email)
 
     // ── 7. Gửi thông báo Telegram ─────────────────────────────

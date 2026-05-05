@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
   const tx = await checkSePayForEmail(member.email)
   if (tx.found && tx.amount) {
     const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-    const activated = { ...member, status: 'active' as const, expiresAt }
+    const activated = { ...member, status: 'active' as const, expiresAt, lastReferenceCode: tx.referenceCode }
     await saveMember(activated)
     console.log('[check-status] ✅ Auto-activated:', member.email)
 
