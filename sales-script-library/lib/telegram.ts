@@ -177,6 +177,25 @@ export async function notifyMentoringPaid(data: {
   await sendTelegramMessage(text)
 }
 
+/** Thông báo khi có người tải lead magnet miễn phí */
+export async function notifyFreeLead(data: {
+  name: string
+  email: string
+  phone?: string
+}) {
+  const text = [
+    '🎁 <b>Lead Magnet mới — "3 Kịch Bản Chốt Đơn"</b>',
+    '',
+    `👤 <b>Tên:</b> ${data.name}`,
+    `📧 <b>Email:</b> <code>${data.email}</code>`,
+    data.phone ? `📞 <b>SĐT:</b> ${data.phone}` : '',
+    '',
+    '⚡ Liên hệ trong 24h để nurture → upsell gói 99k!',
+  ].filter(Boolean).join('\n')
+
+  await sendTelegramMessage(text)
+}
+
 /** Thông báo khi có người ứng tuyển 1:1 Mentoring */
 export async function notifyMentoringApplication(data: {
   name: string

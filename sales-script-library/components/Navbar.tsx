@@ -71,6 +71,9 @@ export default function Navbar() {
               </div>
             ) : !session?.isAdmin ? (
               <div className="flex items-center gap-2">
+                <Link href="/free" className="text-sm text-emerald-600 hover:text-emerald-700 font-semibold transition px-2 py-1.5 hidden lg:block">
+                  🎁 Script miễn phí
+                </Link>
                 <Link href="/bootcamp" className="text-sm text-slate-500 hover:text-blue-600 font-medium transition px-2 py-1.5 hidden lg:block">
                   PRO Bootcamp
                 </Link>
@@ -144,6 +147,9 @@ export default function Navbar() {
             </>
           ) : !session?.isAdmin ? (
             <div className="pt-2 space-y-2 border-t border-slate-100">
+              <Link href="/free" onClick={() => setMenuOpen(false)} className="block text-emerald-600 py-1.5 text-sm font-semibold">
+                🎁 Nhận Script Miễn Phí
+              </Link>
               <Link href="/bootcamp" onClick={() => setMenuOpen(false)} className="block text-blue-600 py-1.5 text-sm font-semibold">
                 🎓 PRO Bootcamp — 1.497.000đ
               </Link>
