@@ -16,12 +16,23 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
-// CORS — cho phép landing page (tieude-landing.vercel.app + custom domain) gọi demo
+// CORS — cho phép landing page (tieude-landing.vercel.app + tieude.tamlyhocvn.club) gọi demo
 const ALLOWED_ORIGINS = [
   'https://tieude-landing.vercel.app',
+  'https://tieude.tamlyhocvn.club',
   'https://www.tamlyhocvn.club',
   'https://tamlyhocvn.club',
 ]
+
+// Origin của landing demo — bị áp budget cap để tránh AI cost vượt kiểm soát
+const DEMO_ORIGINS = new Set([
+  'https://tieude-landing.vercel.app',
+  'https://tieude.tamlyhocvn.club',
+])
+
+// Budget cap cho demo
+const DEMO_PER_IP_PER_DAY = 5      // 5 chat/IP/ngày
+const DEMO_PER_MONTH_TOTAL = 1500  // ~132K VND/tháng max
 
 function corsHeaders(origin: string | null): Record<string, string> {
   const allow = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
@@ -33,6 +44,65 @@ function corsHeaders(origin: string | null): Record<string, string> {
     'Vary': 'Origin',
   }
 }
+
+// Redis helper (Upstash REST) — incr với TTL, dùng để cap budget demo
+async function redisIncrWithTTL(key: string, ttlSec: number): Promise<number> {
+  const url = process.env.UPSTASH_REDIS_REST_URL
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN
+  if (!url || !token) return 0 // fail-open: nếu Redis chưa cấu hình, cho qua
+
+  try {
+    // INCR
+    const r1 = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(['INCR', key]),
+      cache: 'no-store',
+    })
+    const j1 = await r1.json()
+    const count = Number(j1?.result || 0)
+    // Set TTL chỉ khi key mới (count === 1)
+    if (count === 1) {
+      await fetch(url, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(['EXPIRE', key, String(ttlSec)]),
+        cache: 'no-store',
+      })
+    }
+    return count
+  } catch (e) {
+    console.error('[tieude] redis incr error:', e)
+    return 0 // fail-open
+  }
+}
+
+function todayKey(): string {
+  const d = new Date()
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+}
+
+function monthKey(): string {
+  const d = new Date()
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`
+}
+
+const DEMO_LIMIT_REPLY = `🍵 Tiểu đệ vừa pha xong chén trà cho sư huynh!
+
+Em rất tiếc — sư huynh đã thử với em đủ rồi, sư phụ dặn em phải dành thời gian cho **những anh chị nghiêm túc muốn lắp Tiểu Đệ** vào website của họ.
+
+Nếu sư huynh thực sự quan tâm:
+📞 **Zalo sư phụ Sơn:** 0961 588 227
+📅 Hoặc đặt lịch demo full 30 phút **MIỄN PHÍ** → sư phụ sẽ chat với sư huynh trực tiếp!
+
+Em xin lỗi không phục vụ thêm được hôm nay 🙏`
+
+const DEMO_BUDGET_OUT_REPLY = `🍵 Tiểu đệ tạm nghỉ tay tháng này!
+
+Demo đã đạt cap budget tháng — sư phụ Sơn sẽ chat trực tiếp với sư huynh:
+📞 **Zalo sư phụ Sơn:** 0961 588 227
+
+Hẹn sư huynh tháng sau quay lại chat với em nhé! 🙏`
 
 export async function OPTIONS(req: NextRequest) {
   return new NextResponse(null, {
@@ -119,7 +189,10 @@ function mockReply(messages: ChatMessage[], ctx: UserContext): string {
 }
 
 export async function POST(req: NextRequest) {
-  const cors = corsHeaders(req.headers.get('origin'))
+  const origin = req.headers.get('origin')
+  const cors = corsHeaders(origin)
+  const isDemo = !!origin && DEMO_ORIGINS.has(origin)
+
   try {
     const ip =
       req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
@@ -133,6 +206,31 @@ export async function POST(req: NextRequest) {
         },
         { status: 429, headers: cors }
       )
+    }
+
+    // Budget cap cho landing demo: per-IP/day + monthly total
+    if (isDemo) {
+      const monthCount = await redisIncrWithTTL(
+        `tieude:demo:month:${monthKey()}`,
+        60 * 60 * 24 * 35 // 35 days TTL
+      )
+      if (monthCount > DEMO_PER_MONTH_TOTAL) {
+        return NextResponse.json(
+          { reply: DEMO_BUDGET_OUT_REPLY, demoLimit: 'monthly' },
+          { headers: cors }
+        )
+      }
+
+      const ipCount = await redisIncrWithTTL(
+        `tieude:demo:ip:${ip}:${todayKey()}`,
+        60 * 60 * 25 // 25h TTL — slight overlap để chống edge cases
+      )
+      if (ipCount > DEMO_PER_IP_PER_DAY) {
+        return NextResponse.json(
+          { reply: DEMO_LIMIT_REPLY, demoLimit: 'daily' },
+          { headers: cors }
+        )
+      }
     }
 
     const body = await req.json().catch(() => ({}))
