@@ -301,6 +301,7 @@ function AdminPageInner() {
                     <tr>
                       <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Tên</th>
                       <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Email</th>
+                      <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden md:table-cell">SĐT</th>
                       <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden sm:table-cell">Hạn dùng</th>
                       <th className="px-4 py-3"></th>
                     </tr>
@@ -310,6 +311,13 @@ function AdminPageInner() {
                       <tr key={m.id} className="hover:bg-slate-50">
                         <td className="px-4 py-3 text-sm font-medium text-slate-700">{m.name}</td>
                         <td className="px-4 py-3 text-sm text-slate-500">{m.email}</td>
+                        <td className="px-4 py-3 text-sm text-slate-500 hidden md:table-cell">
+                          {m.phone ? (
+                            <a href={`tel:${m.phone}`} className="text-violet-600 hover:text-violet-700 hover:underline">{m.phone}</a>
+                          ) : (
+                            <span className="text-slate-300">—</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-xs text-slate-400 hidden sm:table-cell">
                           {m.expiresAt ? new Date(m.expiresAt).toLocaleDateString('vi-VN') : 'Không giới hạn'}
                         </td>
