@@ -10,6 +10,24 @@ interface Script {
 }
 interface Member { id: string; name: string; email: string; phone?: string; status?: 'pending' | 'active'; createdAt: string; expiresAt?: string }
 
+type FreeLeadStatus = 'new' | 'contacted' | 'converted' | 'lost'
+interface FreeLead {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  source: string
+  createdAt: string
+  status: FreeLeadStatus
+  contactedAt?: string
+  convertedAt?: string
+  note?: string
+}
+interface FreeLeadStats {
+  total: number; new: number; contacted: number; converted: number; lost: number
+  conversionRate: number; last7days: number; last30days: number
+}
+
 const INDUSTRIES = ['bds', 'bao-hiem', 'my-pham', 'fb', 'khac'] as const
 const SITUATIONS = ['chot-sale', 'xu-ly-tu-choi', 'khach-che-dat', 'khach-im-lang', 'follow-up'] as const
 
@@ -26,9 +44,12 @@ export default function AdminPage() {
 function AdminPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [tab, setTab] = useState<'scripts' | 'members'>('scripts')
+  const [tab, setTab] = useState<'scripts' | 'members' | 'leads'>('scripts')
   const [scripts, setScripts] = useState<Script[]>([])
   const [members, setMembers] = useState<Member[]>([])
+  const [leads, setLeads] = useState<FreeLead[]>([])
+  const [leadStats, setLeadStats] = useState<FreeLeadStats | null>(null)
+  const [leadFilter, setLeadFilter] = useState<'all' | FreeLeadStatus>('all')
   const [form, setForm] = useState(EMPTY_FORM)
   const [editId, setEditId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -43,6 +64,7 @@ function AdminPageInner() {
       setAuthed(true)
       loadScripts()
       loadMembers()
+      loadLeads()
     })
   }, [])
 
@@ -56,6 +78,31 @@ function AdminPageInner() {
 
   const loadScripts = () => fetch('/api/scripts').then(r => r.json()).then(setScripts)
   const loadMembers = () => fetch('/api/members').then(r => r.json()).then(setMembers)
+  const loadLeads = () => fetch('/api/leads/free/list').then(r => r.json()).then(d => {
+    setLeads(d.leads || [])
+    setLeadStats(d.stats || null)
+  }).catch(() => {})
+
+  const updateLead = async (id: string, status: FreeLeadStatus) => {
+    const res = await fetch('/api/leads/free/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, status }),
+    })
+    if (res.ok) {
+      setMsg('Đã cập nhật trạng thái lead'); loadLeads(); setTimeout(() => setMsg(''), 2000)
+    }
+  }
+
+  const delLead = async (id: string) => {
+    if (!confirm('Xóa lead này khỏi DB? (Không khôi phục được)')) return
+    await fetch(`/api/leads/free/update?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
+    loadLeads()
+  }
+
+  const exportLeadsCsv = () => {
+    window.open('/api/leads/free/export', '_blank')
+  }
 
   const openEdit = (s: Script) => {
     setForm({ title: s.title, industry: s.industry, situation: s.situation, preview: s.preview, content: s.content, psychology: s.psychology, examples: s.examples })
@@ -136,6 +183,14 @@ function AdminPageInner() {
             {members.filter(m => m.status === 'pending').length > 0 && (
               <span className="bg-amber-400 text-slate-900 text-xs font-black px-1.5 py-0.5 rounded-full">
                 {members.filter(m => m.status === 'pending').length}
+              </span>
+            )}
+          </button>
+          <button onClick={() => setTab('leads')} className={`px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 ${tab === 'leads' ? 'bg-violet-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-violet-400'}`}>
+            🎯 Leads ({leads.length})
+            {leads.filter(l => l.status === 'new').length > 0 && (
+              <span className="bg-rose-500 text-white text-xs font-black px-1.5 py-0.5 rounded-full">
+                {leads.filter(l => l.status === 'new').length} mới
               </span>
             )}
           </button>
@@ -328,6 +383,141 @@ function AdminPageInner() {
                     ))}
                   </tbody>
                 </table>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Leads tab */}
+        {tab === 'leads' && (
+          <div className="space-y-5">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <h2 className="text-lg font-bold text-slate-800">🎯 Leads Magnet "3 Kịch Bản Chốt Đơn"</h2>
+              <button
+                onClick={exportLeadsCsv}
+                className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium px-3.5 py-2 rounded-xl transition flex items-center gap-1.5"
+              >
+                ⬇ Export CSV
+              </button>
+            </div>
+
+            {/* Stats cards */}
+            {leadStats && (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5">
+                <div className="bg-white rounded-xl border border-slate-100 p-3.5">
+                  <p className="text-xs text-slate-500 mb-0.5">Tổng leads</p>
+                  <p className="text-2xl font-black text-slate-800">{leadStats.total}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-slate-100 p-3.5">
+                  <p className="text-xs text-slate-500 mb-0.5">7 ngày qua</p>
+                  <p className="text-2xl font-black text-violet-600">{leadStats.last7days}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-slate-100 p-3.5">
+                  <p className="text-xs text-slate-500 mb-0.5">Mới (chưa contact)</p>
+                  <p className="text-2xl font-black text-rose-600">{leadStats.new}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-slate-100 p-3.5">
+                  <p className="text-xs text-slate-500 mb-0.5">Đã chốt 99K</p>
+                  <p className="text-2xl font-black text-emerald-600">{leadStats.converted}</p>
+                </div>
+                <div className="bg-white rounded-xl border border-slate-100 p-3.5">
+                  <p className="text-xs text-slate-500 mb-0.5">Conversion rate</p>
+                  <p className="text-2xl font-black text-amber-600">
+                    {(leadStats.conversionRate * 100).toFixed(1)}%
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Filter chips */}
+            <div className="flex gap-1.5 flex-wrap">
+              {(['all', 'new', 'contacted', 'converted', 'lost'] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setLeadFilter(f)}
+                  className={`text-xs px-3 py-1.5 rounded-full font-medium transition ${
+                    leadFilter === f
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-400'
+                  }`}
+                >
+                  {f === 'all' ? 'Tất cả' : f === 'new' ? '🆕 Mới' : f === 'contacted' ? '📞 Đã liên hệ' : f === 'converted' ? '✅ Đã chốt' : '❌ Mất lead'}
+                  {f !== 'all' && leadStats && ` (${leadStats[f]})`}
+                </button>
+              ))}
+            </div>
+
+            {/* Leads table */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              {leads.length === 0 ? (
+                <p className="text-center text-slate-500 py-12 text-sm">
+                  Chưa có lead nào.<br />
+                  <span className="text-xs">Khi khách điền form ở /free, lead sẽ tự xuất hiện ở đây.</span>
+                </p>
+              ) : leads.filter(l => leadFilter === 'all' || l.status === leadFilter).length === 0 ? (
+                <p className="text-center text-slate-500 py-8 text-sm">Không có lead với trạng thái này</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50 border-b border-slate-100">
+                      <tr>
+                        <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Tên</th>
+                        <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Email</th>
+                        <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden md:table-cell">SĐT</th>
+                        <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden sm:table-cell">Ngày tải</th>
+                        <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Trạng thái</th>
+                        <th className="px-4 py-3"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {leads
+                        .filter(l => leadFilter === 'all' || l.status === leadFilter)
+                        .map(l => (
+                          <tr key={l.id} className="hover:bg-slate-50">
+                            <td className="px-4 py-3 text-sm font-medium text-slate-700">{l.name}</td>
+                            <td className="px-4 py-3 text-sm">
+                              <a href={`mailto:${l.email}`} className="text-violet-600 hover:underline">{l.email}</a>
+                            </td>
+                            <td className="px-4 py-3 text-sm hidden md:table-cell">
+                              {l.phone ? (
+                                <a href={`tel:${l.phone}`} className="text-violet-600 hover:underline">{l.phone}</a>
+                              ) : (
+                                <span className="text-slate-300">—</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-500 hidden sm:table-cell whitespace-nowrap">
+                              {new Date(l.createdAt).toLocaleDateString('vi-VN')}
+                            </td>
+                            <td className="px-4 py-3">
+                              <select
+                                value={l.status}
+                                onChange={(e) => updateLead(l.id, e.target.value as FreeLeadStatus)}
+                                className={`text-xs font-medium px-2.5 py-1.5 rounded-lg border-0 cursor-pointer ${
+                                  l.status === 'new' ? 'bg-rose-50 text-rose-700' :
+                                  l.status === 'contacted' ? 'bg-violet-50 text-violet-700' :
+                                  l.status === 'converted' ? 'bg-emerald-50 text-emerald-700' :
+                                  'bg-slate-100 text-slate-500'
+                                }`}
+                              >
+                                <option value="new">🆕 Mới</option>
+                                <option value="contacted">📞 Đã liên hệ</option>
+                                <option value="converted">✅ Đã chốt 99K</option>
+                                <option value="lost">❌ Mất</option>
+                              </select>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <button
+                                onClick={() => delLead(l.id)}
+                                className="text-xs text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg transition"
+                              >
+                                Xóa
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>
