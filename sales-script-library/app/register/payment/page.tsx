@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useState, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import TrackEventOnMount from '@/components/TrackEventOnMount'
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ⚙️  CẤU HÌNH NGÂN HÀNG
@@ -155,6 +156,12 @@ function PaymentContent() {
   // ── Normal payment page ────────────────────────────────
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-12">
+
+      <TrackEventOnMount
+        event="InitiateCheckout"
+        params={{ value: 99000, currency: 'VND', content_ids: ['msl-register'], content_name: 'Mind Sales Lab Membership', content_type: 'product' }}
+        dedupeKey="checkout_register"
+      />
 
       {/* Logo */}
       <Link href="/" className="mb-8 flex items-center gap-2 font-bold text-lg">

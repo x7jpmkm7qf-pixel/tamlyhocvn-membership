@@ -1,8 +1,14 @@
 import Link from 'next/link'
+import TrackEventOnMount from '@/components/TrackEventOnMount'
 
 export default function BootcampSuccessPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-12">
+      <TrackEventOnMount
+        event="Purchase"
+        params={{ value: 1497000, currency: 'VND', content_ids: ['msl-bootcamp'], content_name: 'PRO Bootcamp', content_type: 'product' }}
+        dedupeKey="purchase_bootcamp"
+      />
       <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm shadow-sm overflow-hidden text-center">
         <div className="bg-gradient-to-r from-blue-500 to-blue-700 px-6 py-10">
           <div className="text-6xl mb-4">🎓</div>

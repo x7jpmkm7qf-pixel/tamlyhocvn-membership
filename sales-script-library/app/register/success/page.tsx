@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import TrackEventOnMount from '@/components/TrackEventOnMount'
 
 function SuccessContent() {
   const params    = useSearchParams()
@@ -16,6 +17,11 @@ function SuccessContent() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-16">
+      <TrackEventOnMount
+        event="Purchase"
+        params={{ value: 99000, currency: 'VND', content_ids: ['msl-register'], content_name: 'Mind Sales Lab Membership', content_type: 'product' }}
+        dedupeKey={`purchase_register_${orderCode || 'noorder'}`}
+      />
       <Link href="/" className="mb-10 flex items-center gap-2 font-bold text-lg">
         <span className="text-2xl">🧠</span>
         <span className="bg-gradient-to-r from-violet-700 to-amber-600 bg-clip-text text-transparent font-extrabold">

@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useState, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import TrackEventOnMount from '@/components/TrackEventOnMount'
 
 const BANK = {
   code:    process.env.NEXT_PUBLIC_BANK_CODE    || 'MB',
@@ -132,6 +133,11 @@ function PaymentContent() {
   // Payment page
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-12">
+      <TrackEventOnMount
+        event="InitiateCheckout"
+        params={{ value: 6997000, currency: 'VND', content_ids: ['msl-mentoring'], content_name: '1:1 Mentoring', content_type: 'product' }}
+        dedupeKey="checkout_mentoring"
+      />
       <Link href="/mentoring" className="mb-8 flex items-center gap-2 font-bold text-lg">
         <span className="text-2xl">🧠</span>
         <span className="bg-gradient-to-r from-amber-500 to-violet-700 bg-clip-text text-transparent font-extrabold">
