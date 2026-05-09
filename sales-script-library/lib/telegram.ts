@@ -255,3 +255,83 @@ export async function notifyMentoringApplication(data: {
 
   await sendTelegramMessage(text)
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LEAD NURTURE — admin notifications
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Nhắc admin khi 1 lead còn ở status `new` quá X giờ */
+export async function notifyLeadNudge(opts: {
+  name: string
+  email: string
+  phone?: string
+  ageHours: number
+  source: string
+}) {
+  const text = [
+    '⏰ <b>Lead chưa contact!</b>',
+    '',
+    `👤 <b>Tên:</b> ${opts.name}`,
+    `📧 <b>Email:</b> <code>${opts.email}</code>`,
+    opts.phone ? `📞 <b>SĐT:</b> <code>${opts.phone}</code>` : '',
+    `📍 <b>Nguồn:</b> ${opts.source}`,
+    `🕐 <b>Đã ${Math.round(opts.ageHours)}h kể từ khi tải</b>`,
+    '',
+    opts.ageHours < 48
+      ? '🔥 Còn cơ hội cao — anh chat Zalo ngay!'
+      : '⚠️ Lead đang nguội — last chance trước khi auto-archive.',
+  ].filter(Boolean).join('\n')
+
+  await sendTelegramMessage(text)
+}
+
+/** Báo cáo summary auto-archive */
+export async function notifyLeadAutoArchived(opts: {
+  count: number
+  emails: string[]
+}) {
+  if (opts.count === 0) return
+
+  const text = [
+    '📦 <b>Đã auto-archive lead nguội</b>',
+    '',
+    `Có <b>${opts.count}</b> lead không phản hồi sau 14 ngày, đã chuyển sang trạng thái "lost":`,
+    '',
+    ...opts.emails.slice(0, 10).map((e) => `• <code>${e}</code>`),
+    opts.count > 10 ? `... và ${opts.count - 10} lead khác` : '',
+    '',
+    '💡 Vào /admin → tab Leads → filter "Mất lead" để xem.',
+  ].filter(Boolean).join('\n')
+
+  await sendTelegramMessage(text)
+}
+
+/** Báo cáo cron run summary (gửi nếu có activity) */
+export async function notifyLeadCronSummary(opts: {
+  emailsSent: { welcome: number; checkin: number; pitch: number; lastcall: number }
+  nudgesSent: number
+  archived: number
+  errors: number
+}) {
+  const total =
+    opts.emailsSent.welcome +
+    opts.emailsSent.checkin +
+    opts.emailsSent.pitch +
+    opts.emailsSent.lastcall
+  if (total === 0 && opts.nudgesSent === 0 && opts.archived === 0) return
+
+  const text = [
+    '🤖 <b>Lead nurture cron đã chạy</b>',
+    '',
+    `📧 Email gửi: <b>${total}</b>`,
+    `   • Welcome (T+0): ${opts.emailsSent.welcome}`,
+    `   • Check-in (T+24h): ${opts.emailsSent.checkin}`,
+    `   • Pitch (T+72h): ${opts.emailsSent.pitch}`,
+    `   • Last call (T+5d): ${opts.emailsSent.lastcall}`,
+    `🔔 Telegram nudge: <b>${opts.nudgesSent}</b>`,
+    `📦 Auto-archived: <b>${opts.archived}</b>`,
+    opts.errors > 0 ? `⚠️ Lỗi: <b>${opts.errors}</b>` : '',
+  ].filter(Boolean).join('\n')
+
+  await sendTelegramMessage(text)
+}

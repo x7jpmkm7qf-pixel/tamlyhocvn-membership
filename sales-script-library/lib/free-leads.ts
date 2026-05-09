@@ -16,6 +16,9 @@ export type FreeLeadStatus =
   | 'converted'  // đã mua 99K
   | 'lost'       // không phản hồi / từ chối
 
+/** Step 0 = welcome (T+0), 1 = checkin (T+24h), 2 = soft-pitch (T+72h), 3 = last-call (T+5d) */
+export type NurtureStep = 0 | 1 | 2 | 3
+
 export interface FreeLead {
   id: string
   name: string
@@ -28,6 +31,16 @@ export interface FreeLead {
   convertedAt?: string
   convertedMemberId?: string  // link với member khi user upgrade lên 99K
   note?: string
+
+  // ── Nurture automation ───────────────────────────────────────────────
+  /** Step cuối cùng đã gửi email cho lead */
+  nurtureStep?: NurtureStep
+  /** Timestamp email cuối cùng */
+  lastEmailSentAt?: string
+  /** Timestamp Telegram nudge admin gần nhất */
+  lastAdminNudgeAt?: string
+  /** Lead đã bị auto-archive vì quá hạn không phản hồi */
+  autoArchivedAt?: string
 }
 
 // ── Redis helpers ──────────────────────────────────────────────────────────
@@ -115,7 +128,18 @@ export async function upsertFreeLead(
 
 export async function updateFreeLead(
   id: string,
-  patch: Partial<Pick<FreeLead, 'status' | 'note' | 'convertedMemberId'>>
+  patch: Partial<
+    Pick<
+      FreeLead,
+      | 'status'
+      | 'note'
+      | 'convertedMemberId'
+      | 'nurtureStep'
+      | 'lastEmailSentAt'
+      | 'lastAdminNudgeAt'
+      | 'autoArchivedAt'
+    >
+  >
 ): Promise<FreeLead | null> {
   const leads = await getFreeLeads()
   const idx = leads.findIndex((l) => l.id === id)
