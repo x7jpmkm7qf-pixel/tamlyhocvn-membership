@@ -12,10 +12,14 @@ import { NextRequest, NextResponse } from 'next/server'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+// Pseudo-auth: hardcode 1 long random key — chỉ em + anh Sơn biết URL.
+// Sau khi debug xong xóa endpoint hoặc đổi key.
+const DEBUG_KEY = 'tlh-debug-2026-05-09-7f3kqp9z2vmx8'
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const secret = searchParams.get('secret')
-  if (!secret || secret !== process.env.CRON_SECRET) {
+  if (secret !== DEBUG_KEY) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
