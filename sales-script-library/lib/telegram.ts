@@ -5,7 +5,22 @@
 
 const TELEGRAM_API = 'https://api.telegram.org'
 
-async function sendTelegramMessage(text: string): Promise<void> {
+interface InlineButton {
+  text: string
+  url: string
+}
+
+interface SendOptions {
+  /** Inline keyboard buttons hiện dưới tin nhắn — mỗi sub-array là 1 hàng */
+  inline_keyboard?: InlineButton[][]
+  /** Disable web preview để tin gọn hơn */
+  disable_web_page_preview?: boolean
+}
+
+async function sendTelegramMessage(
+  text: string,
+  options: SendOptions = {}
+): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN
   const chatId = process.env.TELEGRAM_CHAT_ID
 
@@ -14,15 +29,22 @@ async function sendTelegramMessage(text: string): Promise<void> {
     return
   }
 
+  const body: Record<string, unknown> = {
+    chat_id: chatId,
+    text,
+    parse_mode: 'HTML',
+    disable_web_page_preview: options.disable_web_page_preview ?? true,
+  }
+
+  if (options.inline_keyboard) {
+    body.reply_markup = { inline_keyboard: options.inline_keyboard }
+  }
+
   try {
     const res = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: 'HTML',
-      }),
+      body: JSON.stringify(body),
     })
     if (!res.ok) {
       const err = await res.json()
@@ -31,6 +53,33 @@ async function sendTelegramMessage(text: string): Promise<void> {
   } catch (e) {
     console.error('[Telegram] Lỗi kết nối:', e)
   }
+}
+
+/** Chuẩn hóa SĐT VN — strip non-digits, đảm bảo có '0' đầu */
+function normalizeVnPhone(phone?: string | null): string | null {
+  if (!phone) return null
+  const digits = phone.replace(/[^0-9]/g, '')
+  if (!digits) return null
+  // Nếu đã có 84 đầu → bỏ 84, thêm 0
+  if (digits.startsWith('84') && digits.length >= 11) return '0' + digits.slice(2)
+  // Nếu chưa có 0 đầu (vd: 858181950) → thêm 0
+  if (!digits.startsWith('0') && digits.length === 9) return '0' + digits
+  return digits
+}
+
+/** Tạo Zalo deep link để mở chat trực tiếp với số đó */
+function buildZaloLink(phone?: string | null): string | null {
+  const normalized = normalizeVnPhone(phone)
+  if (!normalized) return null
+  return `https://zalo.me/${normalized}`
+}
+
+/** Escape HTML cho Telegram parse_mode=HTML */
+function escapeTelegramHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
 }
 
 /** Thông báo khi có người đăng ký mới (chờ thanh toán) */
@@ -212,17 +261,42 @@ export async function notifyFreeLead(data: {
   email: string
   phone?: string
 }) {
+  const firstName = data.name.trim().split(/\s+/).pop() || data.name
+  const zaloUrl = buildZaloLink(data.phone)
+
+  // Tin mẫu T+0 — anh long-press vào <code> block để copy nhanh
+  const template = `Chào anh ${firstName}!
+
+Em là Sơn — admin tamlyhocvn.club. Em vừa thấy anh tải tài liệu "3 Kịch Bản Chốt Đơn" của em 🙏
+
+Anh đang sales ngành gì vậy ạ? Em hỏi để có thể giới thiệu đúng kịch bản phù hợp nhất với anh.`
+
   const text = [
     '🎁 <b>Lead Magnet mới — "3 Kịch Bản Chốt Đơn"</b>',
     '',
     `👤 <b>Tên:</b> ${data.name}`,
     `📧 <b>Email:</b> <code>${data.email}</code>`,
-    data.phone ? `📞 <b>SĐT:</b> ${data.phone}` : '',
+    data.phone ? `📞 <b>SĐT:</b> <code>${data.phone}</code>` : '',
     '',
-    '⚡ Liên hệ trong 24h để nurture → upsell gói 99k!',
+    '⚡ <b>Liên hệ trong 24h</b> để nurture → upsell gói 99k!',
+    '',
+    '━━━━━━━━━━━━━━━━━━━━━━━',
+    '<b>💬 Tin mẫu</b> (long-press để copy):',
+    '',
+    `<code>${escapeTelegramHtml(template)}</code>`,
   ].filter(Boolean).join('\n')
 
-  await sendTelegramMessage(text)
+  // Inline buttons — chỉ thêm Zalo button nếu có SĐT hợp lệ
+  const inline_keyboard: InlineButton[][] = []
+  if (zaloUrl) {
+    inline_keyboard.push([
+      { text: '💬 Mở Zalo chat ngay', url: zaloUrl },
+    ])
+  }
+
+  await sendTelegramMessage(text, {
+    inline_keyboard: inline_keyboard.length > 0 ? inline_keyboard : undefined,
+  })
 }
 
 /** Thông báo khi có người ứng tuyển 1:1 Mentoring */
@@ -268,6 +342,23 @@ export async function notifyLeadNudge(opts: {
   ageHours: number
   source: string
 }) {
+  const firstName = opts.name.trim().split(/\s+/).pop() || opts.name
+  const zaloUrl = buildZaloLink(opts.phone)
+  const isStillFresh = opts.ageHours < 48
+
+  // Tin mẫu khác nhau theo độ "nóng" của lead
+  const template = isStillFresh
+    ? `Chào anh ${firstName}!
+
+Em là Sơn — admin tamlyhocvn.club. Em vừa thấy anh tải bộ "3 Kịch Bản Chốt Đơn" hôm qua. Anh đã có dịp đọc qua chưa ạ?
+
+Có gì khúc mắc cứ nhắn em — em sẵn sàng tư vấn miễn phí, không bán gì hết 🙏`
+    : `Chào anh ${firstName}!
+
+Em là Sơn — em thấy anh tải bộ "3 Kịch Bản Chốt Đơn" mấy hôm trước rồi mà chưa có cơ hội nói chuyện.
+
+Em chỉ muốn hỏi nhanh: có kịch bản nào trong bộ chưa cover được tình huống cụ thể anh đang gặp không? Reply em một dòng thôi cũng được.`
+
   const text = [
     '⏰ <b>Lead chưa contact!</b>',
     '',
@@ -277,12 +368,26 @@ export async function notifyLeadNudge(opts: {
     `📍 <b>Nguồn:</b> ${opts.source}`,
     `🕐 <b>Đã ${Math.round(opts.ageHours)}h kể từ khi tải</b>`,
     '',
-    opts.ageHours < 48
+    isStillFresh
       ? '🔥 Còn cơ hội cao — anh chat Zalo ngay!'
       : '⚠️ Lead đang nguội — last chance trước khi auto-archive.',
+    '',
+    '━━━━━━━━━━━━━━━━━━━━━━━',
+    '<b>💬 Tin mẫu</b> (long-press để copy):',
+    '',
+    `<code>${escapeTelegramHtml(template)}</code>`,
   ].filter(Boolean).join('\n')
 
-  await sendTelegramMessage(text)
+  const inline_keyboard: InlineButton[][] = []
+  if (zaloUrl) {
+    inline_keyboard.push([
+      { text: '💬 Mở Zalo chat ngay', url: zaloUrl },
+    ])
+  }
+
+  await sendTelegramMessage(text, {
+    inline_keyboard: inline_keyboard.length > 0 ? inline_keyboard : undefined,
+  })
 }
 
 /** Báo cáo summary auto-archive */
