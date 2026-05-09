@@ -21,6 +21,7 @@ function SuccessContent() {
         event="Purchase"
         params={{ value: 99000, currency: 'VND', content_ids: ['msl-register'], content_name: 'Mind Sales Lab Membership', content_type: 'product' }}
         dedupeKey={`purchase_register_${orderCode || 'noorder'}`}
+        eventID={orderCode ? `purchase_register_${orderCode}` : undefined}
       />
       <Link href="/" className="mb-10 flex items-center gap-2 font-bold text-lg">
         <span className="text-2xl">🧠</span>

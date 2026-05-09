@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMembers, saveMember } from '@/lib/data'
 import { notifyPaymentConfirmed } from '@/lib/telegram'
+import { sendPurchaseEvent } from '@/lib/fb-capi'
 
 export const dynamic = 'force-dynamic'
 
@@ -128,6 +129,24 @@ export async function POST(req: NextRequest) {
       amount: payload.transferAmount,
       transferContent: content,
       referenceCode: payload.referenceCode,
+    })
+
+    // ── 8. Gửi Purchase event lên Facebook (Conversion API) ──
+    // event_id phải khớp với client Pixel để FB dedupe
+    await sendPurchaseEvent({
+      user: {
+        email: member.email,
+        phone: member.phone,
+        name: member.name,
+        ip: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
+        userAgent: req.headers.get('user-agent'),
+        externalId: member.id,
+      },
+      amount: payload.transferAmount,
+      sku: 'msl-register',
+      productName: 'Mind Sales Lab Membership',
+      eventId: `purchase_register_${member.orderCode || payload.referenceCode}`,
+      eventSourceUrl: 'https://www.tamlyhocvn.club/register/success',
     })
 
     return NextResponse.json({

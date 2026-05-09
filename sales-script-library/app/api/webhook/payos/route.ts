@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getMemberByOrderCode, saveMember } from '@/lib/data'
 import { verifyPayOSWebhook, PayOSWebhookData } from '@/lib/payos'
 import { notifyPaymentConfirmed } from '@/lib/telegram'
+import { sendPurchaseEvent } from '@/lib/fb-capi'
 
 interface PayOSWebhookPayload {
   code: string
@@ -74,6 +75,23 @@ export async function POST(req: NextRequest) {
       amount:          data.amount,
       transferContent: data.description,
       referenceCode:   data.reference,
+    })
+
+    // ── 7. Gửi Purchase event lên Facebook (Conversion API) ──
+    await sendPurchaseEvent({
+      user: {
+        email: member.email,
+        phone: member.phone,
+        name: member.name,
+        ip: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
+        userAgent: req.headers.get('user-agent'),
+        externalId: member.id,
+      },
+      amount: data.amount,
+      sku: 'msl-register',
+      productName: 'Mind Sales Lab Membership',
+      eventId: `purchase_register_${data.orderCode}`,
+      eventSourceUrl: 'https://www.tamlyhocvn.club/register/success',
     })
 
     return NextResponse.json({ success: true, message: `Đã kích hoạt ${member.email}` })

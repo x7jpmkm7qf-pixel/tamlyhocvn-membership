@@ -7,7 +7,12 @@
 
 export const PIXEL_ID = '2401396086990381'
 
-type FBQ = (action: string, event: string, params?: Record<string, unknown>) => void
+type FBQ = (
+  action: string,
+  event: string,
+  params?: Record<string, unknown>,
+  options?: { eventID?: string }
+) => void
 
 function getFbq(): FBQ | null {
   if (typeof window === 'undefined') return null
@@ -17,12 +22,18 @@ function getFbq(): FBQ | null {
 
 export function trackEvent(
   name: string,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
+  /** eventID dùng để dedupe với server-side Conversion API */
+  eventID?: string
 ): void {
   const fbq = getFbq()
   if (!fbq) return
   try {
-    fbq('track', name, params)
+    if (eventID) {
+      fbq('track', name, params, { eventID })
+    } else {
+      fbq('track', name, params)
+    }
   } catch (e) {
     console.warn('[pixel] track error:', e)
   }
