@@ -1,7 +1,9 @@
 'use client'
-import { Suspense } from 'react'
+import { Fragment, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import MidContentCTA from '@/components/MidContentCTA'
+import StickyOfferBar from '@/components/StickyOfferBar'
 
 /* ─────────────────────────── SCRIPT DATA ─────────────────────────── */
 
@@ -320,9 +322,39 @@ function DownloadContent() {
           </div>
         </div>
 
-        {/* Scripts */}
-        {SCRIPTS.map(script => (
-          <ScriptCard key={script.id} script={script} />
+        {/* Scripts + Mid-content CTAs sau mỗi script — bắt user khi đang đọc */}
+        {SCRIPTS.map((script, idx) => (
+          <Fragment key={script.id}>
+            <ScriptCard script={script} />
+            {idx === 0 && (
+              <MidContentCTA
+                variant="violet"
+                emoji="💡"
+                headline={<>Còn <span className="text-amber-400">5 kịch bản nữa</span> cho objection &quot;để suy nghĩ&quot;</>}
+                body={<>Vd: khi khách bắt đầu im lặng giữa câu, khi khách hỏi &quot;để em hỏi sếp&quot;, khi khách trì hoãn lần thứ 3, khi khách hứa &quot;sẽ phản hồi sau&quot;... Mỗi tình huống có script word-for-word riêng.</>}
+                ctaText="Mở khóa 18+ kịch bản — 99K/tháng →"
+              />
+            )}
+            {idx === 1 && (
+              <MidContentCTA
+                variant="amber"
+                emoji="💰"
+                headline={<>14 kịch bản chuyên sâu xử lý &quot;đắt quá&quot; — <span className="text-amber-300">theo từng ngành</span></>}
+                body={<>BĐS có cách reframe khác Bảo hiểm. Mỹ phẩm khác F&amp;B. Tài chính khác MLM. Trong Mind Sales Lab có script riêng cho từng ngành — không phải kịch bản generic copy đại trà.</>}
+                ctaText="Xem kịch bản theo ngành của tôi — 99K →"
+              />
+            )}
+            {idx === 2 && (
+              <MidContentCTA
+                variant="emerald"
+                emoji="🎁"
+                headline={<>Hôm nay anh có <span className="text-amber-300">1 đặc quyền dành riêng</span></>}
+                body={<>Mua trong 24h tới — em gửi link kết nối Zalo để anh đặt lịch <strong className="text-white">audit 1-1 với sư phụ Sơn (30 phút)</strong>. Anh kể 1 case khách đang stuck, em phân tích tâm lý + cho kịch bản custom riêng.</>}
+                ctaText="Nhận deal hôm nay — 99K + bonus 1tr →"
+                showBonus
+              />
+            )}
+          </Fragment>
         ))}
 
         {/* Bonus section */}
@@ -377,19 +409,43 @@ function DownloadContent() {
             ))}
           </div>
 
-          <div className="flex items-center justify-center gap-2 mb-4">
+          {/* Bonus offer — chỉ hiện trong 24h đầu (countdown ở sticky bar) */}
+          <div className="bg-gradient-to-r from-amber-900/40 to-orange-900/40 border-2 border-amber-500/40 rounded-xl px-4 py-4 mb-5 text-left">
+            <p className="text-xs font-black text-amber-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+              🎁 Bonus đặc biệt 24h đầu
+            </p>
+            <p className="text-white font-bold text-sm leading-snug mb-1">
+              30 phút audit 1-1 Zalo với sư phụ Sơn
+            </p>
+            <p className="text-amber-200 text-xs leading-relaxed">
+              Anh kể 1 case khách đang stuck → em phân tích tâm lý + cho kịch bản custom riêng cho anh.
+              <span className="text-amber-300 line-through ml-1">Giá 1.000.000đ</span>
+              <span className="text-emerald-300 font-bold ml-1">→ MIỄN PHÍ kèm gói 99K hôm nay</span>
+            </p>
+          </div>
+
+          <div className="flex items-center justify-center gap-2 mb-1">
             <span className="text-slate-400 line-through text-sm">500.000đ/tháng</span>
-            <span className="text-3xl font-black text-amber-400">99.000đ</span>
+            <span className="text-4xl font-black text-amber-400">99.000đ</span>
             <span className="text-slate-400 text-sm">/tháng</span>
           </div>
+          <p className="text-center text-emerald-400 text-xs font-bold mb-4">
+            ≈ 3.300đ/ngày — bằng 1 ly trà đá
+          </p>
 
           <Link
             href="/register"
-            className="block w-full bg-gradient-to-r from-violet-600 to-violet-700 hover:from-violet-500 hover:to-violet-600 text-white font-black py-4 rounded-xl transition text-base shadow-lg shadow-violet-900/40 mb-3"
+            className="block w-full bg-gradient-to-r from-violet-600 via-violet-700 to-amber-600 hover:from-violet-500 hover:via-violet-600 hover:to-amber-500 text-white font-black py-4 rounded-xl transition text-base shadow-2xl shadow-violet-900/60 mb-2 ring-2 ring-amber-500/30"
           >
-            Mở Khóa Toàn Bộ 18+ Kịch Bản — 99.000đ →
+            Mở Khóa 18+ Kịch Bản + Audit 1-1 — 99K →
           </Link>
-          <p className="text-xs text-slate-500">Kích hoạt tức thì · Hủy bất kỳ lúc nào</p>
+          <div className="flex items-center justify-center gap-3 text-xs text-slate-500 mb-1">
+            <span className="flex items-center gap-1"><span className="text-emerald-400">⚡</span>Kích hoạt tức thì</span>
+            <span>·</span>
+            <span className="flex items-center gap-1"><span className="text-emerald-400">🛡</span>Hoàn tiền 7 ngày</span>
+            <span>·</span>
+            <span className="flex items-center gap-1"><span className="text-emerald-400">✕</span>Hủy bất kỳ lúc nào</span>
+          </div>
         </div>
 
         {/* Footer */}
@@ -409,6 +465,12 @@ function DownloadContent() {
         </div>
 
       </div>
+
+      {/* Sticky offer bar — hiện khi scroll, có countdown 24h + nút quick CTA */}
+      <StickyOfferBar />
+
+      {/* Padding bottom để sticky bar không che content cuối */}
+      <div className="h-24 print:hidden" aria-hidden />
     </div>
   )
 }
