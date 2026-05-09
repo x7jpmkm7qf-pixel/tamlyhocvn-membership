@@ -190,40 +190,41 @@ function nurtureLayout({
 </html>`
 }
 
-/** T+0: Welcome — gửi NGAY khi user điền form, kèm link tải PDF */
+/** T+0: Welcome — gửi NGAY khi user điền form, kèm link xem 3 kịch bản */
 export async function sendLeadWelcomeEmail(opts: NurtureEmailOpts) {
   const firstName = getFirstName(opts.name)
-  const downloadUrl = `${APP_URL}/free/download`
+  const viewUrl = `${APP_URL}/free/download`
 
   const html = nurtureLayout({
-    title: `Cảm ơn ${escapeHtml(firstName)} — đây là tài liệu của anh/chị 🎁`,
+    title: `Cảm ơn ${escapeHtml(firstName)} — 3 kịch bản chốt đơn đây ạ 🎁`,
     bodyHtml: `
       <p>Chào <strong>${escapeHtml(firstName)}</strong>,</p>
-      <p>Em là Sơn — admin <strong>tamlyhocvn.club</strong>. Cảm ơn anh/chị đã quan tâm đến bộ tài liệu <em>"3 Kịch Bản Chốt Đơn"</em>!</p>
-      <p>Bộ này em soạn từ kinh nghiệm thực tế đào tạo 200+ sales trong 5 năm — gồm 3 kịch bản gặp nhiều nhất:</p>
+      <p>Em là Sơn — admin <strong>tamlyhocvn.club</strong>. Cảm ơn anh/chị đã quan tâm đến bộ <em>"3 Kịch Bản Chốt Đơn"</em>!</p>
+      <p>3 kịch bản này em soạn từ kinh nghiệm thực tế đào tạo 200+ sales trong 5 năm — gồm 3 tình huống gặp nhiều nhất:</p>
       <ul style="margin:8px 0 16px;padding-left:20px;">
         <li><strong>Kịch bản 1</strong> — Khi khách nói "để em suy nghĩ thêm"</li>
         <li><strong>Kịch bản 2</strong> — Khi khách chê đắt</li>
         <li><strong>Kịch bản 3</strong> — Khi khách im lặng sau báo giá</li>
       </ul>
-      <p>Click nút bên dưới để tải về và áp dụng ngay hôm nay 👇</p>
+      <p>Click nút bên dưới để xem chi tiết — có nút <strong>💾 Lưu PDF</strong> ở trang đó để in/save về máy nếu anh/chị muốn 👇</p>
     `,
-    ctaUrl: downloadUrl,
-    ctaText: 'Tải tài liệu miễn phí →',
+    ctaUrl: viewUrl,
+    ctaText: 'Xem 3 kịch bản ngay →',
   })
 
   const text = `Chào ${firstName},
 
 Em là Sơn — cảm ơn anh/chị đã quan tâm đến "3 Kịch Bản Chốt Đơn".
 
-Tải tài liệu tại: ${downloadUrl}
+Xem chi tiết tại: ${viewUrl}
+(Có nút "Lưu PDF" trên trang để in/save về máy.)
 
 Có gì cần hỏi nhắn Zalo: 0961 588 227 — Hán Văn Sơn.
 — Mind Sales Lab (tamlyhocvn.club)`
 
   return sendEmail({
     to: opts.to,
-    subject: `🎁 ${firstName} ơi, tài liệu "3 Kịch Bản Chốt Đơn" đây ạ`,
+    subject: `🎁 ${firstName} ơi, 3 kịch bản chốt đơn đây ạ`,
     html,
     text,
   })

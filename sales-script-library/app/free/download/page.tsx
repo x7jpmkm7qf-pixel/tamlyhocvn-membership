@@ -252,11 +252,17 @@ function DownloadContent() {
   const params = useSearchParams()
   const name   = params.get('name') || 'anh/chị'
 
+  const handleSavePdf = () => {
+    if (typeof window !== 'undefined') {
+      window.print()
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-slate-900 text-white print:bg-white print:text-slate-900">
 
       {/* Nav */}
-      <div className="border-b border-slate-800 px-4 py-3 flex items-center justify-between max-w-3xl mx-auto">
+      <div className="border-b border-slate-800 px-4 py-3 flex items-center justify-between max-w-3xl mx-auto print:hidden">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl">🧠</span>
           <span className="bg-gradient-to-r from-violet-400 to-amber-400 bg-clip-text text-transparent font-extrabold text-sm">
@@ -268,17 +274,28 @@ function DownloadContent() {
         </Link>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 py-10">
+      <div className="max-w-3xl mx-auto px-4 py-10 print:py-4">
 
         {/* Welcome */}
-        <div className="text-center mb-10">
-          <div className="text-5xl mb-4">🎁</div>
-          <h1 className="text-2xl md:text-3xl font-black mb-2">
-            Xin chào, <span className="text-amber-400">{name}</span>!
+        <div className="text-center mb-6 print:mb-4">
+          <div className="text-5xl mb-4 print:hidden">🎁</div>
+          <h1 className="text-2xl md:text-3xl font-black mb-2 print:text-2xl print:text-slate-900">
+            Xin chào, <span className="text-amber-400 print:text-amber-700">{name}</span>!
           </h1>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-400 text-sm print:text-slate-600">
             Dưới đây là 3 kịch bản chốt đơn cấp tốc — đọc và áp dụng ngay hôm nay.
           </p>
+        </div>
+
+        {/* Save PDF button — chỉ hiện trên web, ẩn khi print */}
+        <div className="flex justify-center mb-10 print:hidden">
+          <button
+            onClick={handleSavePdf}
+            className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-violet-500 text-slate-200 hover:text-white text-sm font-medium px-5 py-3 rounded-xl transition"
+          >
+            <span className="text-lg">💾</span>
+            <span>Lưu thành PDF / In ra giấy</span>
+          </button>
         </div>
 
         {/* Quick summary */}
@@ -332,8 +349,8 @@ function DownloadContent() {
           </div>
         </div>
 
-        {/* Upsell CTA */}
-        <div className="bg-gradient-to-br from-violet-900/60 to-slate-800/60 border border-violet-700/50 rounded-2xl p-6 text-center">
+        {/* Upsell CTA — ẩn khi print để PDF không có sales pitch */}
+        <div className="bg-gradient-to-br from-violet-900/60 to-slate-800/60 border border-violet-700/50 rounded-2xl p-6 text-center print:hidden">
           <div className="text-3xl mb-3">🧠</div>
           <h3 className="text-xl font-black text-white mb-2">
             Đây mới chỉ là 3/18+ kịch bản
@@ -376,13 +393,19 @@ function DownloadContent() {
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center print:hidden">
           <p className="text-xs text-slate-500 mb-1">
             Cần hỗ trợ? Liên hệ Sơn trực tiếp:
           </p>
           <a href="tel:0961588227" className="text-sm font-bold text-violet-400 hover:text-violet-300 transition">
             📞 0961 588 227
           </a>
+        </div>
+
+        {/* Print-only footer (chỉ xuất hiện trong PDF) */}
+        <div className="hidden print:block print:mt-8 print:text-center print:text-slate-600 print:text-xs">
+          <p className="mb-1">© Mind Sales Lab — tamlyhocvn.club</p>
+          <p>Liên hệ Sơn: 0961 588 227 | Toàn bộ 18+ kịch bản tại tamlyhocvn.club/register</p>
         </div>
 
       </div>
