@@ -8,6 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { notifyFreeLead, notifyLeadNudge } from '@/lib/telegram'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -88,6 +89,34 @@ export async function GET(req: NextRequest) {
   )
   diag.test3_status = test3.status
   diag.test3_body = await test3.json().catch(() => null)
+
+  // Test 4: Call notifyFreeLead THẲNG — same path mà /api/leads/free gọi
+  try {
+    await notifyFreeLead({
+      name: 'Debug Test ' + Date.now(),
+      email: 'debug-' + Date.now() + '@tamlyhocvn.club',
+      phone: '0858181950',
+    })
+    diag.test4_notifyFreeLead = 'completed (no exception)'
+  } catch (e) {
+    diag.test4_notifyFreeLead_error = e instanceof Error ? e.message : String(e)
+    diag.test4_notifyFreeLead_stack = e instanceof Error ? e.stack : null
+  }
+
+  // Test 5: Call notifyLeadNudge thẳng
+  try {
+    await notifyLeadNudge({
+      name: 'Debug Nudge ' + Date.now(),
+      email: 'nudge-' + Date.now() + '@tamlyhocvn.club',
+      phone: '0858181950',
+      ageHours: 30,
+      source: '/free',
+    })
+    diag.test5_notifyLeadNudge = 'completed (no exception)'
+  } catch (e) {
+    diag.test5_notifyLeadNudge_error = e instanceof Error ? e.message : String(e)
+    diag.test5_notifyLeadNudge_stack = e instanceof Error ? e.stack : null
+  }
 
   return NextResponse.json({ ok: true, diag })
 }
