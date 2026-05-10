@@ -45,7 +45,9 @@ export default function AdminPage() {
 function AdminPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [tab, setTab] = useState<'scripts' | 'members' | 'leads'>('scripts')
+  const [tab, setTab] = useState<'scripts' | 'members' | 'leads' | 'settings'>('scripts')
+  const [pwdForm, setPwdForm] = useState({ oldPwd: '', newPwd: '', confirmPwd: '' })
+  const [pwdSubmitting, setPwdSubmitting] = useState(false)
   const [scripts, setScripts] = useState<Script[]>([])
   const [members, setMembers] = useState<Member[]>([])
   const [leads, setLeads] = useState<FreeLead[]>([])
@@ -123,6 +125,42 @@ function AdminPageInner() {
       setTimeout(() => setMsg(''), 5000)
     } else {
       setMsg('❌ Lỗi: ' + (data.error || 'unknown'))
+    }
+  }
+
+  const changePassword = async () => {
+    if (pwdForm.newPwd !== pwdForm.confirmPwd) {
+      setMsg('❌ Mật khẩu xác nhận không khớp')
+      setTimeout(() => setMsg(''), 3000)
+      return
+    }
+    if (pwdForm.newPwd.length < 12) {
+      setMsg('❌ Mật khẩu mới phải có ít nhất 12 ký tự')
+      setTimeout(() => setMsg(''), 3000)
+      return
+    }
+
+    setPwdSubmitting(true)
+    try {
+      const res = await fetch('/api/auth/admin/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldPassword: pwdForm.oldPwd, newPassword: pwdForm.newPwd }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setMsg('✅ Đã đổi mật khẩu! Bạn cần đăng nhập lại với mật khẩu mới.')
+        setPwdForm({ oldPwd: '', newPwd: '', confirmPwd: '' })
+        setTimeout(() => router.push('/admin/login'), 2000)
+      } else {
+        setMsg('❌ ' + (data.error || 'Đổi mật khẩu thất bại'))
+        setTimeout(() => setMsg(''), 5000)
+      }
+    } catch {
+      setMsg('❌ Lỗi mạng — vui lòng thử lại')
+      setTimeout(() => setMsg(''), 3000)
+    } finally {
+      setPwdSubmitting(false)
     }
   }
 
@@ -224,6 +262,9 @@ function AdminPageInner() {
                 {leads.filter(l => l.status === 'new').length} mới
               </span>
             )}
+          </button>
+          <button onClick={() => setTab('settings')} className={`px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 ${tab === 'settings' ? 'bg-violet-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-violet-400'}`}>
+            ⚙️ Cài đặt
           </button>
         </div>
 
@@ -571,6 +612,103 @@ function AdminPageInner() {
                   </table>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Settings tab */}
+        {tab === 'settings' && (
+          <div className="space-y-5 max-w-xl">
+            <h2 className="text-lg font-bold text-slate-800">⚙️ Cài đặt</h2>
+
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+              <h3 className="font-bold text-slate-800 mb-1">🔒 Đổi mật khẩu admin</h3>
+              <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+                Mật khẩu mới phải có ít nhất <strong>12 ký tự</strong>, gồm cả <strong>chữ cái + chữ số</strong>.
+                Sau khi đổi, bạn sẽ tự động đăng xuất và phải đăng nhập lại.
+              </p>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Mật khẩu hiện tại</label>
+                  <input
+                    type="password"
+                    value={pwdForm.oldPwd}
+                    onChange={e => setPwdForm({ ...pwdForm, oldPwd: e.target.value })}
+                    autoComplete="current-password"
+                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent"
+                    placeholder="Nhập mật khẩu cũ"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Mật khẩu mới</label>
+                  <input
+                    type="password"
+                    value={pwdForm.newPwd}
+                    onChange={e => setPwdForm({ ...pwdForm, newPwd: e.target.value })}
+                    autoComplete="new-password"
+                    className="w-full border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent"
+                    placeholder="Tối thiểu 12 ký tự, có chữ + số"
+                  />
+                  {pwdForm.newPwd && (
+                    <div className="mt-1.5 flex items-center gap-2 text-xs">
+                      <span className={pwdForm.newPwd.length >= 12 ? 'text-emerald-600' : 'text-slate-400'}>
+                        {pwdForm.newPwd.length >= 12 ? '✓' : '○'} 12+ ký tự
+                      </span>
+                      <span className={/[A-Za-z]/.test(pwdForm.newPwd) ? 'text-emerald-600' : 'text-slate-400'}>
+                        {/[A-Za-z]/.test(pwdForm.newPwd) ? '✓' : '○'} Có chữ
+                      </span>
+                      <span className={/[0-9]/.test(pwdForm.newPwd) ? 'text-emerald-600' : 'text-slate-400'}>
+                        {/[0-9]/.test(pwdForm.newPwd) ? '✓' : '○'} Có số
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Xác nhận mật khẩu mới</label>
+                  <input
+                    type="password"
+                    value={pwdForm.confirmPwd}
+                    onChange={e => setPwdForm({ ...pwdForm, confirmPwd: e.target.value })}
+                    autoComplete="new-password"
+                    className={`w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent ${
+                      pwdForm.confirmPwd && pwdForm.newPwd !== pwdForm.confirmPwd
+                        ? 'border-rose-300 ring-rose-200'
+                        : 'border-slate-300'
+                    }`}
+                    placeholder="Nhập lại mật khẩu mới"
+                  />
+                  {pwdForm.confirmPwd && pwdForm.newPwd !== pwdForm.confirmPwd && (
+                    <p className="text-xs text-rose-500 mt-1">Mật khẩu xác nhận không khớp</p>
+                  )}
+                </div>
+
+                <button
+                  onClick={changePassword}
+                  disabled={
+                    pwdSubmitting ||
+                    !pwdForm.oldPwd ||
+                    !pwdForm.newPwd ||
+                    pwdForm.newPwd !== pwdForm.confirmPwd
+                  }
+                  className="w-full bg-violet-600 hover:bg-violet-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-xl transition"
+                >
+                  {pwdSubmitting ? 'Đang đổi...' : 'Đổi mật khẩu'}
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-sm">
+              <p className="font-bold text-amber-900 mb-2">🛡 Tips bảo mật</p>
+              <ul className="text-amber-800 space-y-1.5 leading-relaxed text-xs">
+                <li>• <strong>Đổi mật khẩu mỗi 3 tháng</strong> hoặc khi nghi ngờ bị lộ</li>
+                <li>• <strong>Không dùng password chung</strong> với account khác (Gmail, FB...)</li>
+                <li>• <strong>Bot Telegram sẽ báo</strong> mỗi lần có người login admin — kiểm tra IP để phát hiện đột nhập</li>
+                <li>• Sau <strong>5 lần nhập sai</strong>, IP sẽ bị khóa 1 giờ tự động</li>
+                <li>• Lưu mật khẩu vào <strong>Password Manager</strong> (1Password, Keychain) — không nhớ, không note vào điện thoại/laptop</li>
+              </ul>
             </div>
           </div>
         )}

@@ -440,3 +440,71 @@ export async function notifyLeadCronSummary(opts: {
 
   await sendTelegramMessage(text)
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ADMIN SECURITY — login alerts + lockout notifications
+// ═══════════════════════════════════════════════════════════════════════════
+
+function shortUserAgent(ua: string): string {
+  // Lấy browser + OS rút gọn từ User-Agent
+  let browser = 'unknown'
+  if (/Chrome\/[\d.]+/.test(ua) && !/Edg\//.test(ua)) browser = 'Chrome'
+  else if (/Edg\//.test(ua)) browser = 'Edge'
+  else if (/Firefox\//.test(ua)) browser = 'Firefox'
+  else if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) browser = 'Safari'
+
+  let os = 'unknown'
+  if (/iPhone|iPad/.test(ua)) os = 'iOS'
+  else if (/Android/.test(ua)) os = 'Android'
+  else if (/Mac OS X/.test(ua)) os = 'macOS'
+  else if (/Windows/.test(ua)) os = 'Windows'
+  else if (/Linux/.test(ua)) os = 'Linux'
+
+  return `${browser} / ${os}`
+}
+
+/** Báo anh khi có người login admin thành công */
+export async function notifyAdminLoginSuccess(opts: {
+  ip: string
+  userAgent: string
+}) {
+  const time = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })
+  const text = [
+    '🔐 <b>Admin login thành công</b>',
+    '',
+    `🌐 <b>IP:</b> <code>${opts.ip}</code>`,
+    `📱 <b>Trình duyệt:</b> ${shortUserAgent(opts.userAgent)}`,
+    `🕐 <b>Lúc:</b> ${time}`,
+    '',
+    '⚠️ <b>Nếu KHÔNG phải anh</b> → đổi mật khẩu ngay tại /admin → tab Cài đặt!',
+  ].join('\n')
+
+  const inline_keyboard: InlineButton[][] = [
+    [{ text: '🔒 Đổi mật khẩu ngay', url: 'https://www.tamlyhocvn.club/admin' }],
+  ]
+
+  await sendTelegramMessage(text, { inline_keyboard })
+}
+
+/** Báo anh khi có IP brute-force bị block do quá nhiều lần sai */
+export async function notifyAdminLoginFailedLockout(opts: {
+  ip: string
+  userAgent: string
+  failCount: number
+  blockMinutes: number
+}) {
+  const time = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })
+  const text = [
+    '🚨 <b>CẢNH BÁO BẢO MẬT — IP bị khóa do brute-force!</b>',
+    '',
+    `🌐 <b>IP:</b> <code>${opts.ip}</code>`,
+    `📱 <b>Trình duyệt:</b> ${shortUserAgent(opts.userAgent)}`,
+    `❌ <b>Số lần sai:</b> ${opts.failCount}`,
+    `🔒 <b>Bị khóa:</b> ${opts.blockMinutes} phút`,
+    `🕐 <b>Phát hiện lúc:</b> ${time}`,
+    '',
+    '⚠️ Có người đang thử đoán mật khẩu admin. Anh nên đổi password ngay nếu mật khẩu đang dùng có thể đoán được!',
+  ].join('\n')
+
+  await sendTelegramMessage(text)
+}
