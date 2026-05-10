@@ -38,24 +38,33 @@ export async function POST(req: NextRequest) {
     }
 
     // Chỉ trigger các hành động dưới đây khi là lead MỚI
+    // QUAN TRỌNG: phải AWAIT — nếu fire-and-forget thì Vercel serverless
+    // sẽ terminate function ngay khi return response → kill async tasks.
     if (leadResult.isNew) {
-      // 1) Notify admin qua Telegram (non-blocking)
-      notifyFreeLead({ name, email, phone }).catch(console.error)
+      const now = new Date().toISOString()
 
-      // 2) Welcome email NGAY — kèm link tải PDF + giới thiệu (T+0)
-      ;(async () => {
-        try {
-          const result = await sendLeadWelcomeEmail({ to: email, name })
-          if (result.ok && leadResult.id) {
-            await updateFreeLead(leadResult.id, {
-              nurtureStep: 0,
-              lastEmailSentAt: new Date().toISOString(),
-            })
-          }
-        } catch (e) {
-          console.error('[free lead] welcome email error:', e instanceof Error ? e.message : e)
+      // 1) Notify admin qua Telegram — phải await để Vercel không kill function
+      try {
+        await notifyFreeLead({ name, email, phone })
+        if (leadResult.id) {
+          await updateFreeLead(leadResult.id, { telegramNotifiedAt: now })
         }
-      })()
+      } catch (e) {
+        console.error('[free lead] telegram error:', e instanceof Error ? e.message : e)
+      }
+
+      // 2) Welcome email NGAY — cũng await
+      try {
+        const result = await sendLeadWelcomeEmail({ to: email, name })
+        if (result.ok && leadResult.id) {
+          await updateFreeLead(leadResult.id, {
+            nurtureStep: 0,
+            lastEmailSentAt: now,
+          })
+        }
+      } catch (e) {
+        console.error('[free lead] welcome email error:', e instanceof Error ? e.message : e)
+      }
     }
 
     return NextResponse.json({ success: true, isNew: leadResult.isNew })

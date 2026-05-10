@@ -41,6 +41,8 @@ export interface FreeLead {
   lastAdminNudgeAt?: string
   /** Lead đã bị auto-archive vì quá hạn không phản hồi */
   autoArchivedAt?: string
+  /** Timestamp tin Telegram đầu tiên đến anh thành công (để biết lead nào bị miss) */
+  telegramNotifiedAt?: string
 }
 
 // ── Redis helpers ──────────────────────────────────────────────────────────
@@ -138,6 +140,7 @@ export async function updateFreeLead(
       | 'lastEmailSentAt'
       | 'lastAdminNudgeAt'
       | 'autoArchivedAt'
+      | 'telegramNotifiedAt'
     >
   >
 ): Promise<FreeLead | null> {

@@ -22,6 +22,7 @@ interface FreeLead {
   contactedAt?: string
   convertedAt?: string
   note?: string
+  telegramNotifiedAt?: string
 }
 interface FreeLeadStats {
   total: number; new: number; contacted: number; converted: number; lost: number
@@ -102,6 +103,36 @@ function AdminPageInner() {
 
   const exportLeadsCsv = () => {
     window.open('/api/leads/free/export', '_blank')
+  }
+
+  const resendTelegramAll = async () => {
+    const missing = leads.filter(l => !l.telegramNotifiedAt && l.status !== 'converted' && l.status !== 'lost').length
+    if (missing === 0) {
+      setMsg('Tất cả lead đã được gửi Telegram rồi — không có gì cần resend')
+      setTimeout(() => setMsg(''), 3000)
+      return
+    }
+    if (!confirm(`Gửi lại Telegram cho ${missing} lead chưa nhận được tin?`)) return
+
+    setMsg(`Đang gửi ${missing} tin Telegram...`)
+    const res = await fetch('/api/leads/free/resend-telegram', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+    const data = await res.json()
+    if (res.ok) {
+      setMsg(`✅ Đã gửi ${data.sent}/${data.targets} tin (${data.errors} lỗi)`)
+      loadLeads()
+      setTimeout(() => setMsg(''), 5000)
+    } else {
+      setMsg('❌ Lỗi: ' + (data.error || 'unknown'))
+    }
+  }
+
+  const resendTelegramOne = async (id: string) => {
+    const res = await fetch('/api/leads/free/resend-telegram', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+    if (res.ok) {
+      setMsg('✅ Đã gửi tin Telegram')
+      loadLeads()
+      setTimeout(() => setMsg(''), 2000)
+    }
   }
 
   const openEdit = (s: Script) => {
@@ -393,12 +424,22 @@ function AdminPageInner() {
           <div className="space-y-5">
             <div className="flex items-center justify-between flex-wrap gap-3">
               <h2 className="text-lg font-bold text-slate-800">🎯 Leads Magnet "3 Kịch Bản Chốt Đơn"</h2>
-              <button
-                onClick={exportLeadsCsv}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium px-3.5 py-2 rounded-xl transition flex items-center gap-1.5"
-              >
-                ⬇ Export CSV
-              </button>
+              <div className="flex items-center gap-2">
+                {leads.filter(l => !l.telegramNotifiedAt && l.status !== 'converted' && l.status !== 'lost').length > 0 && (
+                  <button
+                    onClick={resendTelegramAll}
+                    className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 animate-pulse"
+                  >
+                    📤 Gửi {leads.filter(l => !l.telegramNotifiedAt && l.status !== 'converted' && l.status !== 'lost').length} tin Telegram đang miss
+                  </button>
+                )}
+                <button
+                  onClick={exportLeadsCsv}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium px-3.5 py-2 rounded-xl transition flex items-center gap-1.5"
+                >
+                  ⬇ Export CSV
+                </button>
+              </div>
             </div>
 
             {/* Stats cards */}
@@ -506,12 +547,23 @@ function AdminPageInner() {
                               </select>
                             </td>
                             <td className="px-4 py-3 text-right">
-                              <button
-                                onClick={() => delLead(l.id)}
-                                className="text-xs text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg transition"
-                              >
-                                Xóa
-                              </button>
+                              <div className="flex items-center gap-1.5 justify-end">
+                                {!l.telegramNotifiedAt && l.status !== 'converted' && l.status !== 'lost' && (
+                                  <button
+                                    onClick={() => resendTelegramOne(l.id)}
+                                    title="Gửi lại Telegram (lead này chưa được notify)"
+                                    className="text-xs text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2.5 py-1.5 rounded-lg transition"
+                                  >
+                                    📤
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => delLead(l.id)}
+                                  className="text-xs text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg transition"
+                                >
+                                  Xóa
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))}
