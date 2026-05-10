@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
+import AuthorBio from '@/components/AuthorBio'
 
 const BENEFITS = [
   {
@@ -422,30 +423,7 @@ export default function HomePage() {
       </section>
 
       {/* ── AUTHOR ───────────────────────────── */}
-      <section className="py-16 px-4 max-w-3xl mx-auto">
-        <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm flex flex-col sm:flex-row gap-6 items-start">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-amber-500 flex items-center justify-center text-xl font-black text-white shrink-0">
-            HVS
-          </div>
-          <div>
-            <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Về tác giả</p>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Hán Văn Sơn</h3>
-            <p className="text-slate-600 text-sm leading-relaxed mb-3">
-              Chuyên gia tâm lý học ứng dụng trong kinh doanh. Đã dành nhiều năm nghiên cứu hành vi người mua
-              và xây dựng hệ thống kịch bản bán hàng dựa trên khoa học — không phải cảm tính.
-              Triết lý: <em className="text-slate-800 not-italic font-semibold">&quot;Hiểu người là nền tảng của mọi thành công.&quot;</em>
-            </p>
-            <div className="flex items-center gap-4">
-              <a href="tel:0961588227" className="text-sm font-bold text-violet-600 hover:text-violet-700 transition">
-                📞 0961 588 227
-              </a>
-              <Link href="/mon-qua" className="text-sm text-slate-500 hover:text-violet-600 transition">
-                🎁 Đọc tài liệu miễn phí →
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <AuthorBio variant="full" theme="light" />
 
       {/* ── FAQ ──────────────────────────────── */}
       <section className="bg-slate-100 border-t border-slate-200 py-16 px-4">

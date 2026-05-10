@@ -4,6 +4,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import MidContentCTA from '@/components/MidContentCTA'
 import StickyOfferBar from '@/components/StickyOfferBar'
+import AuthorBio from '@/components/AuthorBio'
 
 /* ─────────────────────────── SCRIPT DATA ─────────────────────────── */
 
@@ -299,6 +300,9 @@ function DownloadContent() {
             <span>Lưu thành PDF / In ra giấy</span>
           </button>
         </div>
+
+        {/* Author bio compact — boost trust trước khi đọc content */}
+        <AuthorBio variant="compact" theme="dark" />
 
         {/* Quick summary */}
         <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 mb-10">
