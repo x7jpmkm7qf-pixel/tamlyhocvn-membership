@@ -70,12 +70,14 @@ export async function POST(req: NextRequest) {
           name: lead.name,
           email: lead.email,
           phone: lead.phone,
+          industry: lead.industry,
         })
       } else {
         await notifyLeadNudge({
           name: lead.name,
           email: lead.email,
           phone: lead.phone,
+          industry: lead.industry,
           ageHours: age,
           source: lead.source,
         })

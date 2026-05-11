@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 
 export default function FreeScriptsPage() {
   const router = useRouter()
-  const [form, setForm]       = useState({ name: '', email: '', phone: '' })
+  const [form, setForm]       = useState({ name: '', email: '', phone: '', industry: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
 
@@ -131,6 +131,38 @@ export default function FreeScriptsPage() {
               onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
               className="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 transition"
             />
+
+            <div>
+              <select
+                value={form.industry}
+                onChange={e => setForm(f => ({ ...f, industry: e.target.value }))}
+                className="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-amber-500 transition appearance-none"
+              >
+                <option value="">— Anh/chị đang sales ngành gì? (giúp tư vấn đúng) —</option>
+                <option value="Bất động sản">🏢 Bất động sản</option>
+                <option value="Bảo hiểm">🛡 Bảo hiểm</option>
+                <option value="Mỹ phẩm">💄 Mỹ phẩm / Skincare</option>
+                <option value="Thực phẩm chức năng">💊 Thực phẩm chức năng / Dược</option>
+                <option value="F&B / Nhà hàng">🍽 F&B / Nhà hàng / Cà phê</option>
+                <option value="Ô tô">🚗 Ô tô / Xe máy</option>
+                <option value="Tài chính / Ngân hàng">💰 Tài chính / Ngân hàng / Vay</option>
+                <option value="Giáo dục / Khóa học">📚 Giáo dục / Khóa học</option>
+                <option value="Du lịch / Khách sạn">✈️ Du lịch / Khách sạn</option>
+                <option value="Coaching / Tư vấn">🎯 Coaching / Tư vấn</option>
+                <option value="Bán lẻ online (Shopee, Tiki...)">🛒 Bán lẻ online (Shopee, Tiki, FB)</option>
+                <option value="MLM / Đa cấp">🔄 MLM / Đa cấp</option>
+                <option value="B2B / Doanh nghiệp">🏭 B2B / Doanh nghiệp</option>
+                <option value="Khác">❓ Khác (Sơn sẽ tư vấn riêng)</option>
+              </select>
+              {form.industry === 'Khác' && (
+                <input
+                  type="text"
+                  placeholder="Mô tả ngắn ngành của anh/chị..."
+                  onChange={e => setForm(f => ({ ...f, industry: 'Khác — ' + e.target.value }))}
+                  className="mt-2 w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 transition"
+                />
+              )}
+            </div>
 
             {error && (
               <p className="text-red-400 text-xs text-center">{error}</p>

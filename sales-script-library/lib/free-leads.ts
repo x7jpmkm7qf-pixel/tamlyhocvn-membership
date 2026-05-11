@@ -24,6 +24,7 @@ export interface FreeLead {
   name: string
   email: string
   phone?: string
+  industry?: string      // ngành khách điền (BĐS / bảo hiểm / mỹ phẩm / F&B / khác)
   source: string         // vd: '/free', '/free/download', etc.
   createdAt: string
   status: FreeLeadStatus
@@ -89,10 +90,10 @@ export async function getFreeLeadByEmail(
 
 /**
  * Add hoặc update lead (idempotent theo email).
- * Nếu email đã tồn tại → giữ nguyên status, chỉ update tên/SĐT/source nếu đầy đủ hơn.
+ * Nếu email đã tồn tại → giữ nguyên status, chỉ update tên/SĐT/source/industry nếu đầy đủ hơn.
  */
 export async function upsertFreeLead(
-  input: Pick<FreeLead, 'name' | 'email' | 'phone' | 'source'>
+  input: Pick<FreeLead, 'name' | 'email' | 'phone' | 'industry' | 'source'>
 ): Promise<{ lead: FreeLead; isNew: boolean }> {
   const leads = await getFreeLeads()
   const email = input.email.toLowerCase().trim()
@@ -104,6 +105,7 @@ export async function upsertFreeLead(
       ...existing,
       name: existing.name || input.name,
       phone: existing.phone || input.phone,
+      industry: existing.industry || input.industry,
       source: existing.source || input.source,
     }
     leads[idx] = merged
@@ -119,6 +121,7 @@ export async function upsertFreeLead(
     name: input.name.trim(),
     email,
     phone: input.phone?.trim() || undefined,
+    industry: input.industry?.trim() || undefined,
     source: input.source || '/free',
     createdAt: new Date().toISOString(),
     status: 'new',

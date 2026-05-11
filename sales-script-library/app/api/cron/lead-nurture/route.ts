@@ -171,6 +171,7 @@ async function runNurture(): Promise<RunResult> {
           name: lead.name,
           email: lead.email,
           phone: lead.phone,
+          industry: lead.industry,
           ageHours: age,
           source: lead.source,
         })

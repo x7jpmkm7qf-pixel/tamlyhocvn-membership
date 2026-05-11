@@ -8,10 +8,11 @@ export const runtime = 'nodejs'  // changed from edge — fb-capi/redis stable o
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { name, email, phone, source } = body as {
+    const { name, email, phone, industry, source } = body as {
       name?: string
       email?: string
       phone?: string
+      industry?: string
       source?: string
     }
 
@@ -29,6 +30,7 @@ export async function POST(req: NextRequest) {
         name,
         email,
         phone,
+        industry,
         source: source || '/free',
       })
       leadResult = { id: r.lead.id, isNew: r.isNew }
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
 
       // 1) Notify admin qua Telegram — phải await để Vercel không kill function
       try {
-        await notifyFreeLead({ name, email, phone })
+        await notifyFreeLead({ name, email, phone, industry })
         if (leadResult.id) {
           await updateFreeLead(leadResult.id, { telegramNotifiedAt: now })
         }

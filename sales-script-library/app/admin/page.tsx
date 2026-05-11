@@ -16,6 +16,7 @@ interface FreeLead {
   name: string
   email: string
   phone?: string
+  industry?: string
   source: string
   createdAt: string
   status: FreeLeadStatus
@@ -546,6 +547,7 @@ function AdminPageInner() {
                         <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Tên</th>
                         <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Email</th>
                         <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden md:table-cell">SĐT</th>
+                        <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden lg:table-cell">Ngành</th>
                         <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden sm:table-cell">Ngày tải</th>
                         <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Trạng thái</th>
                         <th className="px-4 py-3"></th>
@@ -563,6 +565,13 @@ function AdminPageInner() {
                             <td className="px-4 py-3 text-sm hidden md:table-cell">
                               {l.phone ? (
                                 <a href={`tel:${l.phone}`} className="text-violet-600 hover:underline">{l.phone}</a>
+                              ) : (
+                                <span className="text-slate-300">—</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-600 hidden lg:table-cell">
+                              {l.industry ? (
+                                <span className="inline-block bg-violet-50 text-violet-700 px-2 py-0.5 rounded-md font-medium">{l.industry}</span>
                               ) : (
                                 <span className="text-slate-300">—</span>
                               )}
