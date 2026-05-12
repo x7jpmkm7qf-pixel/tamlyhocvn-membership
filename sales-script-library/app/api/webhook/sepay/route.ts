@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getMembers, saveMember } from '@/lib/data'
 import { notifyPaymentConfirmed } from '@/lib/telegram'
 import { sendPurchaseEvent } from '@/lib/fb-capi'
+import { sendTikTokPurchaseEvent } from '@/lib/tiktok-events-api'
 
 export const dynamic = 'force-dynamic'
 
@@ -131,23 +132,43 @@ export async function POST(req: NextRequest) {
       referenceCode: payload.referenceCode,
     })
 
-    // ── 8. Gửi Purchase event lên Facebook (Conversion API) ──
-    // event_id phải khớp với client Pixel để FB dedupe
-    await sendPurchaseEvent({
-      user: {
-        email: member.email,
-        phone: member.phone,
-        name: member.name,
-        ip: req.headers.get('x-forwarded-for')?.split(',')[0]?.trim(),
-        userAgent: req.headers.get('user-agent'),
-        externalId: member.id,
-      },
-      amount: payload.transferAmount,
-      sku: 'msl-register',
-      productName: 'Mind Sales Lab Membership',
-      eventId: `purchase_register_${member.orderCode || payload.referenceCode}`,
-      eventSourceUrl: 'https://www.tamlyhocvn.club/register/success',
-    })
+    // ── 8. Gửi Purchase event lên Facebook + TikTok (Server CAPI) ──
+    // event_id phải khớp với client Pixel để cả 2 platform dedupe
+    const eventId = `purchase_register_${member.orderCode || payload.referenceCode}`
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    const userAgent = req.headers.get('user-agent')
+
+    await Promise.all([
+      sendPurchaseEvent({
+        user: {
+          email: member.email,
+          phone: member.phone,
+          name: member.name,
+          ip,
+          userAgent,
+          externalId: member.id,
+        },
+        amount: payload.transferAmount,
+        sku: 'msl-register',
+        productName: 'Mind Sales Lab Membership',
+        eventId,
+        eventSourceUrl: 'https://www.tamlyhocvn.club/register/success',
+      }),
+      sendTikTokPurchaseEvent({
+        user: {
+          email: member.email,
+          phone: member.phone,
+          ip,
+          userAgent,
+          externalId: member.id,
+        },
+        amount: payload.transferAmount,
+        sku: 'msl-register',
+        productName: 'Mind Sales Lab Membership',
+        eventId,
+        eventSourceUrl: 'https://www.tamlyhocvn.club/register/success',
+      }),
+    ])
 
     return NextResponse.json({
       success: true,
