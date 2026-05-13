@@ -17,42 +17,64 @@ interface SendOptions {
   disable_web_page_preview?: boolean
 }
 
+/**
+ * Parse TELEGRAM_CHAT_ID env var thành array các chat IDs.
+ * Hỗ trợ:
+ * - Single: "477771917"
+ * - Multiple DM (comma-separated): "477771917, 123456789, 987654321"
+ * - Group ID (negative): "-1001234567890"
+ * - Mix: "477771917, -1001234567890"
+ */
+function getChatIds(): string[] {
+  const raw = process.env.TELEGRAM_CHAT_ID
+  if (!raw) return []
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+}
+
 async function sendTelegramMessage(
   text: string,
   options: SendOptions = {}
 ): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN
-  const chatId = process.env.TELEGRAM_CHAT_ID
+  const chatIds = getChatIds()
 
-  if (!token || !chatId) {
+  if (!token || chatIds.length === 0) {
     console.warn('[Telegram] BOT_TOKEN hoặc CHAT_ID chưa được cấu hình')
     return
   }
 
-  const body: Record<string, unknown> = {
-    chat_id: chatId,
-    text,
-    parse_mode: 'HTML',
-    disable_web_page_preview: options.disable_web_page_preview ?? true,
-  }
+  // Gửi song song tới tất cả chat IDs — 1 fail không ảnh hưởng các thằng khác
+  await Promise.all(
+    chatIds.map(async (chatId) => {
+      const body: Record<string, unknown> = {
+        chat_id: chatId,
+        text,
+        parse_mode: 'HTML',
+        disable_web_page_preview: options.disable_web_page_preview ?? true,
+      }
 
-  if (options.inline_keyboard) {
-    body.reply_markup = { inline_keyboard: options.inline_keyboard }
-  }
+      if (options.inline_keyboard) {
+        body.reply_markup = { inline_keyboard: options.inline_keyboard }
+      }
 
-  try {
-    const res = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      try {
+        const res = await fetch(`${TELEGRAM_API}/bot${token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) {
+          const err = await res.json()
+          console.error(`[Telegram] Lỗi gửi tin tới chat ${chatId}:`, err)
+        }
+      } catch (e) {
+        console.error(`[Telegram] Lỗi kết nối khi gửi tin tới chat ${chatId}:`, e)
+      }
     })
-    if (!res.ok) {
-      const err = await res.json()
-      console.error('[Telegram] Lỗi gửi tin:', err)
-    }
-  } catch (e) {
-    console.error('[Telegram] Lỗi kết nối:', e)
-  }
+  )
 }
 
 /** Chuẩn hóa SĐT VN — strip non-digits, đảm bảo có '0' đầu */
