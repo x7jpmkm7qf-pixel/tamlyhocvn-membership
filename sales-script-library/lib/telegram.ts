@@ -328,6 +328,33 @@ export async function notifyFreeLead(data: {
   })
 }
 
+/** Thông báo khi có lead đăng ký Bản Đồ 4 Loại Khách Hàng (/ban-do) */
+export async function notifyBanDoLead(data: {
+  name: string
+  email: string
+}) {
+  const text = [
+    '📜 <b>Lead mới — "Bản Đồ 4 Loại Khách Hàng"</b>',
+    '',
+    `👤 <b>Tên:</b> ${data.name}`,
+    `📧 <b>Email:</b> <code>${data.email}</code>`,
+    `🏷 <b>Nguồn:</b> /ban-do`,
+    '',
+    '⚡ Nurture → upsell sang Khẩu Quyết 199k.',
+  ].join('\n')
+
+  await sendTelegramMessage(text, {
+    inline_keyboard: [
+      [
+        {
+          text: '👥 Nhóm Zalo cộng đồng',
+          url: 'https://zalo.me/g/iaa5rn07vkurgl1tiana',
+        },
+      ],
+    ],
+  })
+}
+
 /** Thông báo khi có người ứng tuyển 1:1 Mentoring */
 export async function notifyMentoringApplication(data: {
   name: string

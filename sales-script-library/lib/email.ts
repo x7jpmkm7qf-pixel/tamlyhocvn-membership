@@ -361,3 +361,112 @@ Có gì cần nhắn Zalo: 0961 588 227 — Sơn.`
     text,
   })
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LEAD MAGNET — "Bản Đồ 4 Loại Khách Hàng Sales Việt" (/ban-do)
+// PDF đang hoàn thiện — email welcome xác nhận đăng ký, hứa gửi PDF sớm
+// ═══════════════════════════════════════════════════════════════════════════
+
+export async function sendBanDoWelcomeEmail(opts: NurtureEmailOpts) {
+  const firstName = getFirstName(opts.name)
+  const khauQuyetUrl = `${APP_URL}/khau-quyet`
+
+  const html = `<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#FEF7E6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1C1917;">
+  <div style="max-width:560px;margin:0 auto;padding:32px 16px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:36px;line-height:1;margin-bottom:8px;">📜</div>
+      <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:700;color:#7C2D12;letter-spacing:2px;">TÀNG KINH CÁC</div>
+      <div style="font-size:11px;letter-spacing:3px;color:#A48A4A;margin-top:2px;">— tamlyhocvn.club —</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #C9A961;border-radius:12px;padding:28px;border-top:6px solid #7C2D12;">
+      <h1 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:700;margin:0 0 14px;color:#7C2D12;">
+        Cảm ơn ${escapeHtml(firstName)} đã đăng ký Bản Đồ!
+      </h1>
+
+      <p style="font-size:14.5px;line-height:1.7;color:#1C1917;margin:0 0 14px;">
+        Em là Sơn — tác giả của <strong>Tàng Kinh Các</strong>. Em đã nhận được đăng ký của anh/chị cho bộ <em>"Bản Đồ 4 Loại Khách Hàng Sales Việt"</em>.
+      </p>
+
+      <div style="background:#FEF7E6;border-left:4px solid #C9A961;padding:14px 18px;border-radius:0 6px 6px 0;margin:18px 0;">
+        <div style="font-size:11px;letter-spacing:1.5px;color:#7C2D12;font-weight:700;text-transform:uppercase;margin-bottom:6px;">📜 Một lưu ý nhỏ</div>
+        <p style="font-size:13.5px;line-height:1.6;color:#1C1917;margin:0;">
+          Em đang trau chuốt phiên bản PDF cuối cùng — bản hoàn chỉnh sẽ được gửi cho anh/chị qua chính email này, <strong>trong vài ngày tới</strong>. Cảm ơn anh/chị đã kiên nhẫn 🙏
+        </p>
+      </div>
+
+      <p style="font-size:14px;line-height:1.7;color:#1C1917;margin:18px 0 8px;">
+        <strong>Trong Bản Đồ, anh/chị sẽ học:</strong>
+      </p>
+      <ul style="margin:0 0 16px;padding-left:20px;font-size:13.5px;line-height:1.7;color:#1C1917;">
+        <li>🔬 Khách <strong>"Phân Tích Gia"</strong> — Cần dữ liệu, sợ sai lầm</li>
+        <li>🛡️ Khách <strong>"Thận Trọng"</strong> — Cần thời gian, sợ áp lực</li>
+        <li>⚡ Khách <strong>"Quyết Nhanh"</strong> — Cần urgency, sợ phức tạp</li>
+        <li>🔍 Khách <strong>"Hoài Nghi"</strong> — Cần proof, sợ bị lừa</li>
+      </ul>
+
+      <hr style="border:none;border-top:1px dashed #C9A961;margin:24px 0;">
+
+      <p style="font-size:14px;line-height:1.7;color:#1C1917;margin:0 0 10px;">
+        <strong>Trong lúc chờ Bản Đồ —</strong> nếu anh/chị muốn <em>có sẵn câu mẫu</em> cho 10 phản đối kinh điển nhất, em có bộ <strong>Khẩu Quyết Phá Phản Đối</strong>:
+      </p>
+
+      <div style="text-align:center;margin:18px 0;">
+        <a href="${khauQuyetUrl}" style="display:inline-block;background:#7C2D12;color:#FEF7E6;text-decoration:none;font-weight:700;padding:12px 28px;border-radius:6px;font-size:14px;">
+          📜 Xem 10 Khẩu Quyết →
+        </a>
+      </div>
+
+      <p style="font-size:12.5px;line-height:1.6;color:#6b3a20;margin:0;">
+        Bản đồ giúp anh/chị <strong>HIỂU</strong> khách.
+        Khẩu Quyết giúp anh/chị <strong>XỬ LÝ</strong> khách. Bổ trợ nhau.
+      </p>
+
+      <hr style="border:none;border-top:1px dashed #C9A961;margin:24px 0;">
+
+      <p style="font-size:13px;line-height:1.7;color:#6b3a20;margin:0;">
+        Có câu hỏi nào nhắn Zalo cho em:<br>
+        <strong style="color:#7C2D12;">📱 0961 588 227 — Hán Văn Sơn</strong>
+      </p>
+    </div>
+
+    <p style="text-align:center;font-size:11px;color:#A48A4A;margin-top:20px;font-style:italic;font-family:'Cormorant Garamond',Georgia,serif;">
+      "Bắt đúng mạch khách — chốt đúng cách deal."<br>
+      <span style="color:#b8895a;font-size:10px;letter-spacing:1px;">— TÀNG KINH CÁC —</span>
+    </p>
+  </div>
+</body>
+</html>`
+
+  const text = `📜 TÀNG KINH CÁC — tamlyhocvn.club
+
+Cảm ơn ${firstName} đã đăng ký Bản Đồ!
+
+Em là Sơn — em đã nhận được đăng ký của anh/chị cho bộ "Bản Đồ 4 Loại Khách Hàng Sales Việt".
+
+📜 LƯU Ý: Em đang trau chuốt phiên bản PDF cuối cùng — bản hoàn chỉnh sẽ được gửi qua chính email này, trong vài ngày tới. Cảm ơn anh/chị đã kiên nhẫn 🙏
+
+Trong Bản Đồ, anh/chị sẽ học:
+- 🔬 Khách "Phân Tích Gia" — Cần dữ liệu, sợ sai lầm
+- 🛡️ Khách "Thận Trọng" — Cần thời gian, sợ áp lực
+- ⚡ Khách "Quyết Nhanh" — Cần urgency, sợ phức tạp
+- 🔍 Khách "Hoài Nghi" — Cần proof, sợ bị lừa
+
+Trong lúc chờ — nếu anh/chị muốn có sẵn câu mẫu cho 10 phản đối kinh điển, em có bộ Khẩu Quyết Phá Phản Đối:
+${khauQuyetUrl}
+
+Bản đồ giúp HIỂU khách. Khẩu Quyết giúp XỬ LÝ khách. Bổ trợ nhau.
+
+Có câu hỏi nhắn Zalo: 0961 588 227 — Hán Văn Sơn
+— Tàng Kinh Các (tamlyhocvn.club)`
+
+  return sendEmail({
+    to: opts.to,
+    subject: `📜 ${firstName} ơi — Em đã nhận đăng ký Bản Đồ`,
+    html,
+    text,
+  })
+}
