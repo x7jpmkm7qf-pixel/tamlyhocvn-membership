@@ -1,0 +1,224 @@
+import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { getMemberSession } from '@/lib/auth'
+import { getCourseBySlug, getCourseContent, getEnrollment, markChapterRead } from '@/lib/courses'
+import TKCWelcomeDialog from '@/components/TKCWelcomeDialog'
+import '@/styles/tang-kinh-cac.css'
+
+export const dynamic = 'force-dynamic'
+
+interface Props {
+  params: { slug: string; chapter: string }
+  searchParams: { welcome?: string }
+}
+
+export default async function ChapterReaderPage({ params, searchParams }: Props) {
+  const session = getMemberSession()!
+  const [course, chapters] = await Promise.all([
+    getCourseBySlug(params.slug),
+    getCourseContent(params.slug),
+  ])
+
+  if (!course || !course.isPublished) notFound()
+
+  const chapter = chapters.find(c => c.id === params.chapter)
+  if (!chapter) notFound()
+
+  const enrollment = await getEnrollment(session.id, course.id)
+  if (!enrollment) notFound()
+
+  // Mark chapter as read
+  await markChapterRead(session.id, course.id, chapter.id, chapters.length)
+
+  const currentIdx = chapters.findIndex(c => c.id === chapter.id)
+  const prevChapter = currentIdx > 0 ? chapters[currentIdx - 1] : null
+  const nextChapter = currentIdx < chapters.length - 1 ? chapters[currentIdx + 1] : null
+
+  // Re-fetch updated enrollment for progress display
+  const updatedEnrollment = await getEnrollment(session.id, course.id)
+  const progress = updatedEnrollment?.progressPercent ?? 0
+  const chaptersRead = new Set(updatedEnrollment?.chaptersRead ?? [])
+  const showWelcome = searchParams.welcome === 'true'
+
+  return (
+    <div style={{ minHeight: '100vh', background: '#091b30', display: 'flex', flexDirection: 'column' }}>
+
+      {showWelcome && <TKCWelcomeDialog />}
+
+      {/* Top nav */}
+      <header style={{ background: '#040e1c', borderBottom: '1px solid rgba(201,169,97,0.15)', position: 'sticky', top: 0, zIndex: 40 }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+          <Link href="/tang-kinh-cac/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+            <span style={{ color: '#C9A961' }}>⚜</span>
+            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1rem', fontWeight: 700, color: '#FEF7E6' }}>Tàng Kinh Các</span>
+          </Link>
+          <div style={{ flex: 1, maxWidth: '200px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+              <span style={{ fontSize: '0.65rem', color: '#a09070', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Tiến độ</span>
+              <span style={{ fontSize: '0.7rem', color: progress === 100 ? '#C9A961' : '#e8dcc8', fontWeight: 600 }}>{progress}%</span>
+            </div>
+            <div style={{ height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{ height: '100%', width: `${progress}%`, background: '#C9A961', borderRadius: '2px' }} />
+            </div>
+          </div>
+          <a
+            href={`/public/files/Ban-Do-4-Loai-Khach-Hang-Sales-Viet.pdf`}
+            download
+            style={{ fontSize: '0.75rem', color: '#C9A961', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}
+          >
+            ↓ PDF
+          </a>
+        </div>
+      </header>
+
+      <div style={{ display: 'flex', flex: 1, maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+
+        {/* Sidebar */}
+        <aside style={{
+          width: '260px', flexShrink: 0, background: '#0f2744',
+          borderRight: '1px solid rgba(201,169,97,0.1)',
+          padding: '1.5rem 0', display: 'none',
+          position: 'sticky', top: '57px', height: 'calc(100vh - 57px)', overflowY: 'auto',
+        }} className="tkc-sidebar">
+          <div style={{ padding: '0 1.25rem', marginBottom: '1rem' }}>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.875rem', fontWeight: 700, color: '#FEF7E6', lineHeight: 1.3 }}>
+              {course.title}
+            </div>
+          </div>
+          <nav>
+            {chapters.map((ch, idx) => {
+              const isActive = ch.id === chapter.id
+              const isRead = chaptersRead.has(ch.id)
+              return (
+                <Link
+                  key={ch.id}
+                  href={`/tang-kinh-cac/khoa-hoc/${params.slug}/${ch.id}`}
+                  style={{
+                    display: 'flex', alignItems: 'flex-start', gap: '0.625rem',
+                    padding: '0.625rem 1.25rem', textDecoration: 'none',
+                    background: isActive ? 'rgba(201,169,97,0.1)' : 'transparent',
+                    borderLeft: isActive ? '3px solid #C9A961' : '3px solid transparent',
+                    transition: 'background 0.15s',
+                  }}
+                >
+                  <span style={{
+                    width: '20px', height: '20px', borderRadius: '50%', flexShrink: 0, marginTop: '1px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem',
+                    background: isRead ? '#C9A961' : 'rgba(255,255,255,0.08)',
+                    color: isRead ? '#040e1c' : '#a09070', fontWeight: 700,
+                  }}>
+                    {isRead ? '✓' : idx + 1}
+                  </span>
+                  <span style={{
+                    fontSize: '0.8125rem', lineHeight: 1.45, fontWeight: isActive ? 600 : 400,
+                    color: isActive ? '#FEF7E6' : isRead ? '#d4c4a0' : '#a09070',
+                  }}>
+                    {ch.chapterTitle}
+                  </span>
+                </Link>
+              )
+            })}
+          </nav>
+        </aside>
+
+        {/* Main content */}
+        <main style={{ flex: 1, padding: '2.5rem 1.5rem', minWidth: 0 }}>
+          <div style={{ maxWidth: '680px', margin: '0 auto' }}>
+
+            {/* Chapter content */}
+            <article className="tkc-content" dangerouslySetInnerHTML={{ __html: chapter.contentHtml }} />
+
+            {/* Chapter navigation */}
+            <nav style={{ marginTop: '3rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(201,169,97,0.15)', display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+              {prevChapter ? (
+                <Link
+                  href={`/tang-kinh-cac/khoa-hoc/${params.slug}/${prevChapter.id}`}
+                  style={{
+                    display: 'flex', flexDirection: 'column', gap: '0.25rem',
+                    textDecoration: 'none', flex: 1,
+                    padding: '0.875rem 1rem', borderRadius: '0.5rem',
+                    background: '#0f2744', border: '1px solid rgba(201,169,97,0.15)',
+                  }}
+                >
+                  <span style={{ fontSize: '0.7rem', color: '#a09070', textTransform: 'uppercase', letterSpacing: '0.06em' }}>← Chương trước</span>
+                  <span style={{ fontSize: '0.875rem', color: '#FEF7E6', fontWeight: 500, lineHeight: 1.35 }}>{prevChapter.chapterTitle}</span>
+                </Link>
+              ) : <div />}
+
+              {nextChapter ? (
+                <Link
+                  href={`/tang-kinh-cac/khoa-hoc/${params.slug}/${nextChapter.id}`}
+                  style={{
+                    display: 'flex', flexDirection: 'column', gap: '0.25rem', textAlign: 'right',
+                    textDecoration: 'none', flex: 1,
+                    padding: '0.875rem 1rem', borderRadius: '0.5rem',
+                    background: '#0f2744', border: '1px solid rgba(201,169,97,0.15)',
+                  }}
+                >
+                  <span style={{ fontSize: '0.7rem', color: '#a09070', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Chương tiếp →</span>
+                  <span style={{ fontSize: '0.875rem', color: '#FEF7E6', fontWeight: 500, lineHeight: 1.35 }}>{nextChapter.chapterTitle}</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/tang-kinh-cac/dashboard"
+                  style={{
+                    display: 'flex', flexDirection: 'column', gap: '0.25rem', textAlign: 'right',
+                    textDecoration: 'none', flex: 1,
+                    padding: '0.875rem 1rem', borderRadius: '0.5rem',
+                    background: 'rgba(201,169,97,0.1)', border: '1px solid rgba(201,169,97,0.3)',
+                  }}
+                >
+                  <span style={{ fontSize: '0.7rem', color: '#C9A961', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Hoàn thành ✓</span>
+                  <span style={{ fontSize: '0.875rem', color: '#FEF7E6', fontWeight: 600 }}>Về Dashboard →</span>
+                </Link>
+              )}
+            </nav>
+          </div>
+        </main>
+      </div>
+
+      {/* Mobile bottom chapter nav */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: '#040e1c', borderTop: '1px solid rgba(201,169,97,0.15)',
+        padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        gap: '0.75rem', zIndex: 30,
+      }} className="tkc-mobile-nav">
+        {prevChapter ? (
+          <Link href={`/tang-kinh-cac/khoa-hoc/${params.slug}/${prevChapter.id}`}
+            style={{ color: '#a09070', textDecoration: 'none', fontSize: '0.8125rem', fontWeight: 600, padding: '0.5rem 0.875rem', borderRadius: '0.375rem', background: 'rgba(255,255,255,0.05)' }}>
+            ← Trước
+          </Link>
+        ) : <div />}
+
+        <div style={{ textAlign: 'center', flex: 1 }}>
+          <div style={{ fontSize: '0.7rem', color: '#a09070' }}>
+            {currentIdx + 1} / {chapters.length}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#FEF7E6', fontWeight: 500, marginTop: '0.125rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {chapter.chapterTitle}
+          </div>
+        </div>
+
+        {nextChapter ? (
+          <Link href={`/tang-kinh-cac/khoa-hoc/${params.slug}/${nextChapter.id}`}
+            style={{ color: '#C9A961', textDecoration: 'none', fontSize: '0.8125rem', fontWeight: 600, padding: '0.5rem 0.875rem', borderRadius: '0.375rem', background: 'rgba(201,169,97,0.1)' }}>
+            Tiếp →
+          </Link>
+        ) : (
+          <Link href="/tang-kinh-cac/dashboard"
+            style={{ color: '#C9A961', textDecoration: 'none', fontSize: '0.8125rem', fontWeight: 600, padding: '0.5rem 0.875rem', borderRadius: '0.375rem', background: 'rgba(201,169,97,0.1)' }}>
+            Xong ✓
+          </Link>
+        )}
+      </div>
+
+      <style>{`
+        @media (min-width: 768px) {
+          .tkc-sidebar { display: block !important; }
+          .tkc-mobile-nav { display: none !important; }
+        }
+      `}</style>
+    </div>
+  )
+}

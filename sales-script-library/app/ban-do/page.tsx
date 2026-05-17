@@ -69,7 +69,7 @@ const FAQS = [
 
 export default function BanDoLandingPage() {
   const router = useRouter()
-  const [form, setForm] = useState({ name: '', email: '' })
+  const [form, setForm] = useState({ name: '', email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -78,17 +78,22 @@ export default function BanDoLandingPage() {
     setLoading(true)
     setError('')
 
+    if (form.password.length < 8) {
+      setError('Mật khẩu phải có ít nhất 8 ký tự')
+      setLoading(false)
+      return
+    }
+
     try {
-      const res = await fetch('/api/leads/ban-do', {
+      const res = await fetch('/api/leads/ban-do-enroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, source: '/ban-do' }),
+        body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Lỗi không xác định')
-      router.push(
-        `/ban-do/thank-you?name=${encodeURIComponent(form.name)}&email=${encodeURIComponent(form.email)}`
-      )
+      router.push(data.redirectTo || '/tang-kinh-cac/khoa-hoc/ban-do?welcome=true')
+      router.refresh()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Lỗi kết nối, thử lại nhé')
     } finally {
@@ -435,6 +440,18 @@ export default function BanDoLandingPage() {
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                 className="w-full bg-[#FEF7E6] border border-[#C9A961] rounded-md px-4 py-3 text-sm text-[#1C1917] placeholder-stone-500 focus:outline-none focus:border-[#7C2D12] transition"
               />
+              <div>
+                <input
+                  type="password"
+                  required
+                  minLength={8}
+                  placeholder="Tạo mật khẩu (tối thiểu 8 ký tự) *"
+                  value={form.password}
+                  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                  className="w-full bg-[#FEF7E6] border border-[#C9A961] rounded-md px-4 py-3 text-sm text-[#1C1917] placeholder-stone-500 focus:outline-none focus:border-[#7C2D12] transition"
+                />
+                <p className="text-xs text-stone-500 mt-1 px-1">Dùng để đăng nhập đọc lại bất cứ lúc nào</p>
+              </div>
 
               {error && (
                 <p className="text-red-700 text-xs text-center bg-red-50 border border-red-200 rounded p-2">
@@ -447,12 +464,12 @@ export default function BanDoLandingPage() {
                 disabled={loading}
                 className="w-full bg-[#7C2D12] hover:bg-[#5C1A0A] disabled:opacity-60 text-[#FEF7E6] font-bold py-4 rounded-md transition text-base shadow-lg"
               >
-                {loading ? 'Đang gửi...' : '🗝️ GỬI BẢN ĐỒ CHO TÔI'}
+                {loading ? 'Đang xử lý...' : '🗝️ NHẬN BẢN ĐỒ VÀ ĐỌC NGAY'}
               </button>
             </form>
 
             <p className="text-center text-xs text-stone-500 mt-4">
-              🔒 Em không spam. Có thể unsubscribe bất cứ lúc nào.
+              🔒 Bảo mật. Không spam. Đăng nhập bất cứ lúc nào để đọc lại.
             </p>
           </div>
         </div>

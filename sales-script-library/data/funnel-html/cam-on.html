@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cảm ơn anh/chị | Tàng Kinh Các</title>
+  <meta name="description" content="Cảm ơn anh/chị đã tin tưởng tamlyhocvn.club. Đây là hành trình tiếp theo.">
+
+  <!-- Meta (Facebook) Pixel — base only, Purchase fires sau tier detection -->
+  <script>
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+  document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '2401396086990381');
+  fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=2401396086990381&ev=PageView&noscript=1"/></noscript>
+
+  <!-- TikTok Pixel — base only, Purchase fires sau tier detection -->
+  <script>
+  !function (w, d, t) {
+    w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script");n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+    ttq.load('D81A9QRC77UCEH8TBC1G');
+    ttq.page();
+  }(window, document, 'ttq');
+  </script>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📜%3C/text%3E%3C/svg%3E">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Noto+Serif:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#1C1917',
+            seal: '#7C2D12',
+            sealdark: '#5C1A0A',
+            gold: '#C9A961',
+            golddark: '#A48A4A',
+            goldlight: '#E0C57E',
+            parchment: '#FEF7E6',
+            parchdark: '#F5EAD2',
+            cream: '#F5EAD2',
+          },
+          fontFamily: {
+            serif: ['"Noto Serif"', 'Georgia', 'serif'],
+            sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ===== Fallback critical CSS ===== */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background-color: #FEF7E6;
+      color: #1C1917;
+      font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Noto Serif', Georgia, serif; margin: 0 0 0.5em; line-height: 1.2; }
+    p { margin: 0 0 1em; }
+    a { color: #7C2D12; text-decoration: none; }
+    button { cursor: pointer; font-family: inherit; }
+    section { padding: 3rem 1rem; }
+
+    /* ===== Custom utilities ===== */
+    .font-serif { font-family: 'Noto Serif', Georgia, serif; }
+    .seal-stamp {
+      display: inline-block;
+      transform: rotate(-6deg);
+      border: 3px solid #7C2D12;
+      color: #7C2D12;
+      padding: 4px 14px;
+      font-family: 'Noto Serif', serif;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .ink-divider {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #7C2D12 20%, #7C2D12 80%, transparent);
+      opacity: 0.4;
+    }
+    @keyframes celebrate {
+      0% { transform: scale(0.8); opacity: 0; }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .celebrate-in { animation: celebrate 0.7s ease-out; }
+    .scroll-mt { scroll-margin-top: 80px; }
+
+    /* ===== Tier-based conditional display ===== */
+    .tier-noimon-only, .tier-khauquyet-only, .tier-unknown-only { display: none; }
+    body.tier-noimon .tier-noimon-only { display: block; }
+    body.tier-noimon .tier-noimon-only.inline { display: inline; }
+    body.tier-khauquyet .tier-khauquyet-only { display: block; }
+    body.tier-khauquyet .tier-khauquyet-only.inline { display: inline; }
+    body.tier-unknown .tier-unknown-only { display: block; }
+    body.tier-unknown .tier-unknown-only.inline { display: inline; }
+
+    /* Loading */
+    #tw-loading {
+      position: fixed; inset: 0; background: #FEF7E6;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; font-family: 'Noto Serif', serif; color: #7C2D12;
+      transition: opacity 0.3s;
+    }
+    #tw-loading.hidden { opacity: 0; pointer-events: none; }
+    .spinner {
+      width: 32px; height: 32px; border: 3px solid #C9A961;
+      border-top-color: transparent; border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+
+<body class="bg-parchment text-ink" style="background-color:#FEF7E6;color:#1C1917;min-height:100vh;">
+
+  <div id="tw-loading">
+    <div style="text-align:center;">
+      <div class="spinner" style="margin: 0 auto 12px;"></div>
+      <div style="font-size: 14px;">📜 Tàng Kinh Các</div>
+    </div>
+  </div>
+
+  <!-- ============ HERO — TIER-SPECIFIC CONGRATS ============ -->
+  <section class="pt-16 pb-12 px-4 sm:px-6">
+    <div class="max-w-3xl mx-auto text-center">
+
+      <!-- For Nội Môn buyer -->
+      <div class="tier-noimon-only celebrate-in">
+        <div class="text-6xl mb-4">🏯</div>
+        <div class="mb-4">
+          <span class="seal-stamp text-sm" style="border-color:#C9A961;color:#A48A4A;">⚔ ĐỆ TỬ NỘI MÔN</span>
+        </div>
+        <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-ink leading-tight mb-4">
+          Chúc mừng anh/chị — <br>
+          <span class="text-seal">đã bước vào Tàng Kinh Các.</span>
+        </h1>
+        <p class="text-lg text-stone-700 max-w-xl mx-auto">
+          Em sẽ đối xử với anh/chị như đệ tử nội môn — tận tâm, theo sát, không hời hợt.
+        </p>
+      </div>
+
+      <!-- For Khẩu Quyết only buyer -->
+      <div class="tier-khauquyet-only celebrate-in">
+        <div class="text-6xl mb-4">📜</div>
+        <div class="mb-4">
+          <span class="seal-stamp text-sm">⚔ ĐỆ TỬ NGOẠI MÔN</span>
+        </div>
+        <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-ink leading-tight mb-4">
+          Chúc mừng anh/chị — <br>
+          <span class="text-seal">đã nhập môn ngoại.</span>
+        </h1>
+        <p class="text-lg text-stone-700 max-w-xl mx-auto">
+          Em đã nhận đơn của anh/chị. Tài liệu sẽ về Zalo trong vòng 24 giờ.
+        </p>
+      </div>
+
+      <!-- For unknown visitor -->
+      <div class="tier-unknown-only">
+        <div class="text-6xl mb-4">👋</div>
+        <h1 class="font-serif text-3xl sm:text-4xl font-extrabold text-ink leading-tight mb-4">
+          Anh/chị đến từ đâu vậy?
+        </h1>
+        <p class="text-lg text-stone-700 max-w-xl mx-auto mb-6">
+          Em không thấy đơn hàng nào trong phiên này. Anh/chị có thể:
+        </p>
+        <a href="/khau-quyet" class="inline-block bg-seal hover:bg-sealdark text-parchment px-6 py-3 rounded-md font-bold transition">
+          → Xem Bí Kíp Khẩu Quyết 99k
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ ORDER SUMMARY ============ -->
+  <section class="px-4 sm:px-6 pb-8 tier-noimon-only">
+    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg border-2 border-gold p-6 sm:p-8">
+      <p class="text-center text-gold uppercase text-xs font-bold tracking-widest mb-4">Tổng kết đầu tư của anh/chị</p>
+
+      <div class="space-y-3 text-sm">
+        <div class="flex justify-between items-center pb-3 border-b border-stone-200">
+          <div>
+            <p class="font-semibold text-ink">📜 Khẩu Quyết Phá Phản Đối</p>
+            <p class="text-xs text-stone-500 mt-1">Mã: <span id="kq-order-1" class="font-mono">KQPD-?????</span></p>
+          </div>
+          <span class="font-semibold text-stone-700">99.000đ</span>
+        </div>
+        <div class="flex justify-between items-center pb-3 border-b border-stone-200">
+          <div>
+            <p class="font-semibold text-ink">🏯 Tàng Kinh Các Nội Môn</p>
+            <p class="text-xs text-stone-500 mt-1">Mã: <span id="nm-order-1" class="font-mono">TKC-?????</span></p>
+          </div>
+          <span class="font-semibold text-stone-700"><span id="nm-paid-amount">266</span>.000đ</span>
+        </div>
+        <div class="flex justify-between items-center bg-gold/15 rounded-md p-3 mt-2">
+          <span class="font-serif font-bold text-ink">Tổng đầu tư</span>
+          <span class="font-serif font-extrabold text-2xl text-seal"><span id="total-invested">365</span>.000đ</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="px-4 sm:px-6 pb-8 tier-khauquyet-only">
+    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-lg border border-stone-200 p-6 sm:p-8">
+      <p class="text-center text-seal uppercase text-xs font-bold tracking-widest mb-4">Đơn hàng của anh/chị</p>
+
+      <div class="flex justify-between items-center">
+        <div>
+          <p class="font-semibold text-ink">📜 Khẩu Quyết Phá Phản Đối</p>
+          <p class="text-xs text-stone-500 mt-1">Mã: <span id="kq-order-2" class="font-mono">KQPD-?????</span></p>
+        </div>
+        <span class="font-serif font-bold text-xl text-seal">99.000đ</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DELIVERY TIMELINE ============ -->
+  <section class="py-12 px-4 sm:px-6 bg-parchdark scroll-mt">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-center mb-3">
+        <span class="tier-noimon-only inline">📥 Anh Sơn đang chuẩn bị cho anh/chị</span>
+        <span class="tier-khauquyet-only inline">📥 Anh Sơn sẽ gửi gì cho anh/chị</span>
+      </h2>
+      <p class="text-center text-stone-600 mb-10 text-sm">Em xử lý từng đơn đích thân — không bot, không auto-email.</p>
+
+      <!-- For Nội Môn buyer -->
+      <div class="tier-noimon-only space-y-4">
+        <div class="bg-white border-l-4 border-gold p-5 rounded-r-lg shadow-sm flex gap-4 items-start">
+          <span class="text-2xl">⏱️</span>
+          <div class="flex-1">
+            <p class="font-semibold text-ink">Trong 30 phút</p>
+            <p class="text-sm text-stone-600 mt-1">Em gửi qua Zalo: PDF "10 Khẩu Quyết" + Audio MP3 + Video "Mổ xẻ deal" + Link Quiz "Bản Đồ Phản Đối"</p>
+          </div>
+        </div>
+        <div class="bg-white border-l-4 border-gold p-5 rounded-r-lg shadow-sm flex gap-4 items-start">
+          <span class="text-2xl">🏯</span>
+          <div class="flex-1">
+            <p class="font-semibold text-ink">Trong 24 giờ</p>
+            <p class="text-sm text-stone-600 mt-1">Em add anh/chị vào <strong>Nhóm Zalo Nội Môn</strong> + gửi link Drive truy cập <strong>100+ kịch bản chuyên ngành</strong> (BĐS, bảo hiểm, F&B, EdTech, mỹ phẩm, B2B, freelance, coaching)</p>
+          </div>
+        </div>
+        <div class="bg-white border-l-4 border-gold p-5 rounded-r-lg shadow-sm flex gap-4 items-start">
+          <span class="text-2xl">📅</span>
+          <div class="flex-1">
+            <p class="font-semibold text-ink">Trong 7 ngày đầu</p>
+            <p class="text-sm text-stone-600 mt-1">Em nhắn riêng anh/chị 1 buổi 1-1 (20 phút Zalo Call) — em hỏi về công việc, ngành nghề, để <strong>recommend 5 kịch bản phù hợp nhất với anh/chị</strong> trong 100+ thư viện.</p>
+          </div>
+        </div>
+        <div class="bg-white border-l-4 border-gold p-5 rounded-r-lg shadow-sm flex gap-4 items-start">
+          <span class="text-2xl">🎬</span>
+          <div class="flex-1">
+            <p class="font-semibold text-ink">Tháng tới — Live "Mổ Xẻ Deal"</p>
+            <p class="text-sm text-stone-600 mt-1">Em báo lịch chính xác qua nhóm Zalo Nội Môn. Buổi đầu: 90 phút phân tích 3 case từ học viên. Anh/chị có thể nộp case của mình.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- For Khẩu Quyết only buyer -->
+      <div class="tier-khauquyet-only space-y-4">
+        <div class="bg-white border-l-4 border-seal p-5 rounded-r-lg shadow-sm flex gap-4 items-start">
+          <span class="text-2xl">⏱️</span>
+          <div class="flex-1">
+            <p class="font-semibold text-ink">Trong 30 phút</p>
+            <p class="text-sm text-stone-600 mt-1">Em gửi qua Zalo: PDF "10 Khẩu Quyết" + Audio MP3 + Video "Mổ xẻ deal" + Link Quiz "Bản Đồ Phản Đối"</p>
+          </div>
+        </div>
+        <div class="bg-white border-l-4 border-seal p-5 rounded-r-lg shadow-sm flex gap-4 items-start">
+          <span class="text-2xl">🏯</span>
+          <div class="flex-1">
+            <p class="font-semibold text-ink">Trong 24 giờ</p>
+            <p class="text-sm text-stone-600 mt-1">Em add anh/chị vào <strong>Nhóm Zalo Đệ Tử Ngoại Môn</strong> (cohort 20 người/tuần, kéo dài 7 ngày)</p>
+          </div>
+        </div>
+        <div class="bg-white border-l-4 border-seal p-5 rounded-r-lg shadow-sm flex gap-4 items-start">
+          <span class="text-2xl">📆</span>
+          <div class="flex-1">
+            <p class="font-semibold text-ink">Mỗi ngày trong 7 ngày tới</p>
+            <p class="text-sm text-stone-600 mt-1">Em đăng 1 case thật + áp 1 khẩu quyết trong nhóm. Anh/chị có thể post case của mình — em + đệ tử cùng phân tích.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3 THINGS TO DO NOW ============ -->
+  <section class="py-12 px-4 sm:px-6 scroll-mt">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-center mb-3">⚡ 3 việc anh/chị làm ngay</h2>
+      <p class="text-center text-stone-600 mb-10 text-sm">Trong khi em chuẩn bị tài liệu, anh/chị có thể bắt đầu luyện công.</p>
+
+      <div class="grid sm:grid-cols-3 gap-5">
+        <div class="bg-white p-6 rounded-lg shadow-sm border-t-4 border-seal">
+          <div class="text-3xl mb-3">①</div>
+          <p class="font-semibold text-ink mb-2">Save số em vào Zalo</p>
+          <p class="text-sm text-stone-600 mb-4">Để khi em gửi tài liệu, anh/chị không bỏ lỡ.</p>
+          <a href="https://zalo.me/0961588227" target="_blank" class="inline-block bg-seal hover:bg-sealdark text-parchment text-sm px-4 py-2 rounded font-semibold transition">
+            💬 Mở Zalo Sơn →
+          </a>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-sm border-t-4 border-seal">
+          <div class="text-3xl mb-3">②</div>
+          <p class="font-semibold text-ink mb-2">Nghĩ về 3 deal đang treo</p>
+          <p class="text-sm text-stone-600 mb-4">Khách nào anh/chị đang "để em suy nghĩ"? Note lại 3 cái — em sẽ giúp anh/chị xử lý.</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-sm border-t-4 border-seal">
+          <div class="text-3xl mb-3">③</div>
+          <p class="font-semibold text-ink mb-2">Sẵn sàng cuộc gọi đầu tiên</p>
+          <p class="text-sm text-stone-600 mb-4">Khi em gửi PDF, đọc <strong>Khẩu Quyết #2</strong> trước — và áp dụng ngay vào 1 cuộc gọi hôm nay.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOR KQ ONLY — SOFT NỘI MÔN PITCH ============ -->
+  <section class="py-12 px-4 sm:px-6 bg-ink text-cream tier-khauquyet-only scroll-mt">
+    <div class="max-w-2xl mx-auto text-center">
+      <p class="text-gold uppercase text-xs font-bold tracking-widest mb-4">Lưu ý</p>
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold text-cream mb-6">
+        Nếu sau này anh/chị muốn nâng cấp lên <span class="text-gold">Nội Môn</span>
+      </h2>
+      <p class="text-cream/80 leading-relaxed max-w-xl mx-auto mb-6">
+        Cửa sổ ưu đãi trừ 99k đã đóng. Sau này, Tàng Kinh Các Nội Môn vẫn mở cửa với giá đầy đủ — <strong class="text-gold">365.000đ</strong>.
+        <br><br>
+        Em không có chương trình giảm giá định kỳ. Anh/chị có thể vào bất cứ lúc nào — nhưng giá không đổi.
+      </p>
+      <p class="text-cream/60 text-sm italic">
+        Trong 7 ngày luyện Khẩu Quyết, nếu anh/chị thấy <em>"giờ em muốn đi sâu hơn"</em> — nhắn em qua Zalo, em sẽ gửi link.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section class="py-12 px-4 sm:px-6 bg-parchdark scroll-mt">
+    <div class="max-w-2xl mx-auto text-center">
+      <h2 class="font-serif text-2xl sm:text-3xl font-bold mb-4">Cần em hỗ trợ?</h2>
+      <p class="text-stone-700 mb-8">
+        Em đọc và trả lời từng tin Zalo. Không bot, không trợ lý.
+      </p>
+
+      <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+        <a href="https://zalo.me/0961588227" target="_blank"
+           class="inline-flex items-center gap-2 bg-seal hover:bg-sealdark text-parchment px-6 py-3 rounded-md font-semibold transition">
+          💬 Nhắn Zalo Sơn
+        </a>
+        <a href="mailto:hanvanson.vanlanguni@gmail.com"
+           class="inline-flex items-center gap-2 bg-white border border-stone-300 hover:border-seal text-ink px-6 py-3 rounded-md font-semibold transition">
+          ✉️ Gửi email
+        </a>
+      </div>
+
+      <p class="text-xs text-stone-500 mt-8 italic">
+        Thời gian phản hồi trung bình: 2–4 giờ trong giờ làm việc (8h–22h).
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="bg-ink text-cream/60 py-10 px-4 sm:px-6">
+    <div class="max-w-5xl mx-auto text-center">
+      <p class="font-serif font-bold text-gold text-lg mb-2">📜 Tàng Kinh Các</p>
+      <p class="text-xs">tamlyhocvn.club · KB Sales — Thư viện Kịch bản Sales</p>
+      <p class="text-xs mt-4">© 2026 tamlyhocvn.club · Mọi quyền được bảo lưu</p>
+    </div>
+  </footer>
+
+  <!-- ============ SCRIPTS ============ -->
+  <script>
+    // Hide loading screen
+    function hideLoader() {
+      const loader = document.getElementById('tw-loading');
+      if (loader) loader.classList.add('hidden');
+      setTimeout(() => { if (loader) loader.remove(); }, 400);
+    }
+    if (document.readyState === 'complete') hideLoader();
+    else { window.addEventListener('load', hideLoader); setTimeout(hideLoader, 2000); }
+
+    // ===== TIER DETECTION =====
+    // Read order IDs from localStorage (set when customer visited sales pages)
+    const noimonOrder = (() => { try { return localStorage.getItem('noimon_order_id'); } catch (e) { return null; } })();
+    const kqOrder = (() => { try { return localStorage.getItem('khauquyet_order_id'); } catch (e) { return null; } })();
+
+    let tier;
+    if (noimonOrder) {
+      tier = 'noimon';
+    } else if (kqOrder) {
+      tier = 'khauquyet';
+    } else {
+      tier = 'unknown';
+    }
+    document.body.classList.add(`tier-${tier}`);
+
+    // ===== PIXEL PURCHASE EVENT (fire sau tier detection) =====
+    (function firePurchase() {
+      let value = 0, sku = '', name = '', orderId = '';
+      if (tier === 'noimon') {
+        const kqAmount = parseInt(localStorage.getItem('khauquyet_paid_amount') || '99000', 10);
+        const nmAmount = parseInt(localStorage.getItem('noimon_paid_amount') || '266000', 10);
+        value = kqAmount + nmAmount;
+        sku = 'noimon';
+        name = 'Tàng Kinh Các Nội Môn';
+        orderId = noimonOrder || '';
+      } else if (tier === 'khauquyet') {
+        value = parseInt(localStorage.getItem('khauquyet_paid_amount') || '99000', 10);
+        sku = 'khau-quyet';
+        name = 'Khẩu Quyết Phá Phản Đối';
+        orderId = kqOrder || '';
+      } else {
+        return; // tier-unknown: no purchase to fire
+      }
+      const eventId = `purchase_${sku}_${orderId || Date.now()}`;
+      // Dedupe key prevent firing twice on reload
+      const fireKey = `pixel_fired_${eventId}`;
+      try { if (localStorage.getItem(fireKey)) return; } catch (e) {}
+      try { localStorage.setItem(fireKey, '1'); } catch (e) {}
+
+      // Meta Pixel Purchase
+      if (window.fbq) {
+        window.fbq('track', 'Purchase', {
+          value: value,
+          currency: 'VND',
+          content_ids: [sku],
+          content_type: 'product',
+          content_name: name
+        }, { eventID: eventId });
+      }
+      // TikTok Pixel Purchase
+      if (window.ttq) {
+        window.ttq.track('Purchase', {
+          value: value,
+          currency: 'VND',
+          contents: [{
+            content_id: sku,
+            content_name: name,
+            content_type: 'product',
+            price: value,
+            quantity: 1
+          }]
+        }, { event_id: eventId });
+      }
+    })();
+
+    // Populate order IDs
+    if (kqOrder) {
+      document.querySelectorAll('#kq-order-1, #kq-order-2').forEach(el => el.textContent = kqOrder);
+    }
+    if (noimonOrder) {
+      document.querySelectorAll('#nm-order-1').forEach(el => el.textContent = noimonOrder);
+    }
+
+    // Populate actual paid amounts (Nội Môn buyer might have paid 266k or 365k depending on countdown state)
+    if (tier === 'noimon') {
+      const kqAmount = parseInt(localStorage.getItem('khauquyet_paid_amount') || '99000', 10);
+      const nmAmount = parseInt(localStorage.getItem('noimon_paid_amount') || '266000', 10);
+      const total = kqAmount + nmAmount;
+
+      const nmEl = document.getElementById('nm-paid-amount');
+      const totalEl = document.getElementById('total-invested');
+      // Display as thousands (e.g. 266000 → "266", 365000 → "365")
+      if (nmEl) nmEl.textContent = Math.floor(nmAmount / 1000).toLocaleString('vi-VN');
+      if (totalEl) totalEl.textContent = Math.floor(total / 1000).toLocaleString('vi-VN');
+    }
+
+    // Clear the offer-start timestamp once customer reaches Thank You — they've decided
+    // (prevents 30-min countdown from triggering again if they revisit)
+    try {
+      if (tier === 'noimon') {
+        // Optional: keep timestamp so we know completion. Or clear.
+        // For now, clear so a fresh visit resets state.
+        localStorage.removeItem('noimon_offer_start');
+      }
+    } catch (e) {}
+
+    // Smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const id = a.getAttribute('href').slice(1);
+        const el = document.getElementById(id);
+        if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      });
+    });
+
+    // Log for debug
+    console.log('[Thank You] tier:', tier, '| KQ:', kqOrder, '| Nội Môn:', noimonOrder);
+  </script>
+
+</body>
+</html>

@@ -12,6 +12,7 @@ import { getMembers, saveMember } from '@/lib/data'
 import { notifyPaymentConfirmed } from '@/lib/telegram'
 import { sendPurchaseEvent } from '@/lib/fb-capi'
 import { sendTikTokPurchaseEvent } from '@/lib/tiktok-events-api'
+import { sendKhauQuyetDelivery, sendNoiMonDelivery } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,22 +33,37 @@ interface SepayWebhookPayload {
 }
 
 /**
- * Trích xuất email từ nội dung chuyển khoản
- * Format: "MSL email@example.com ..."
+ * Trích xuất email và prefix sản phẩm từ nội dung chuyển khoản.
+ *
+ * Hỗ trợ 2 prefix:
+ *   - "KQ <email>" — Khẩu Quyết Phá Phản Đối (199k)
+ *   - "MSL <email>" — Mind Sales Lab Membership (99k/tháng)
+ *
+ * Email có thể bị MB Bank strip @ và . — normalize bằng cách compare normalized email.
  */
-function extractEmailFromContent(content: string): string | null {
-  if (!content) return null
+function extractEmailFromContent(content: string, allMemberEmails: string[]): { email: string | null; prefix: 'KQ' | 'MSL' | null } {
+  if (!content) return { email: null, prefix: null }
   const lower = content.toLowerCase().trim()
 
-  // Tìm pattern "msl " theo sau là email
-  const match = lower.match(/msl\s+([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})/)
-  if (match) return match[1]
+  // Phát hiện prefix
+  const prefix: 'KQ' | 'MSL' | null = /\bkq\b/.test(lower) ? 'KQ'
+                                    : /\bmsl\b/.test(lower) ? 'MSL'
+                                    : null
 
-  // Fallback: tìm email bất kỳ trong content
+  // Thử match email đầy đủ trong content (chuyển khoản giữ nguyên @ .)
   const emailMatch = lower.match(/([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})/)
-  if (emailMatch) return emailMatch[1]
+  if (emailMatch) return { email: emailMatch[1], prefix }
 
-  return null
+  // MB Bank strip @ . — match normalized email với danh sách member
+  const stripped = lower.replace(/[^a-z0-9]/g, '')
+  for (const memberEmail of allMemberEmails) {
+    const normalized = memberEmail.toLowerCase().replace(/[@.]/g, '')
+    if (normalized && stripped.includes(normalized)) {
+      return { email: memberEmail, prefix }
+    }
+  }
+
+  return { email: null, prefix }
 }
 
 export async function POST(req: NextRequest) {
@@ -75,19 +91,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: 'Bỏ qua giao dịch tiền ra' })
     }
 
-    // ── 3. Kiểm tra số tiền đúng 99.000đ ──────────────────────
-    const REQUIRED_AMOUNT = parseInt(process.env.MEMBERSHIP_PRICE || '99000')
-    if (payload.transferAmount < REQUIRED_AMOUNT) {
-      console.log(`[SePay] Số tiền không đủ: ${payload.transferAmount} < ${REQUIRED_AMOUNT}`)
-      return NextResponse.json({
-        success: false,
-        message: `Số tiền ${payload.transferAmount} không đủ ${REQUIRED_AMOUNT}`
-      })
-    }
+    // ── 3. Lấy member list (cần để extract email trong case MB Bank strip @ .) ─
+    const members = await getMembers()
 
-    // ── 4. Trích xuất email từ nội dung chuyển khoản ──────────
+    // ── 4. Trích xuất email + prefix từ nội dung chuyển khoản ──
     const content = payload.content || payload.code || ''
-    const email = extractEmailFromContent(content)
+    const { email, prefix } = extractEmailFromContent(content, members.map(m => m.email))
 
     if (!email) {
       console.log('[SePay] Không tìm thấy email trong nội dung:', content)
@@ -97,35 +106,87 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // ── 5. Tìm thành viên pending với email này ────────────────
-    const members = await getMembers()
-    const member = members.find(
-      m => m.email === email && m.status === 'pending'
-    )
+    // ── 5. Kiểm tra số tiền tối thiểu — tuỳ theo prefix ────────
+    // KQ (Khẩu Quyết) phải ≥ 199k. MSL (Membership) ≥ 99k. UPGRADE_MIN (≥300k) → Nội Môn (cả 2 prefix).
+    // UPGRADE_MIN giữ env fallback 266k để khách hàng cũ chuyển voucher 266k vẫn được activate Nội Môn.
+    const KHAUQUYET_MIN   = parseInt(process.env.KHAUQUYET_PRICE   || '199000')
+    const MEMBERSHIP_MIN  = parseInt(process.env.MEMBERSHIP_PRICE  || '99000')
+    const UPGRADE_MIN     = parseInt(process.env.NOIMON_MIN_PRICE  || '266000')
 
-    if (!member) {
-      // Kiểm tra xem email đã active chưa (tránh xử lý lại)
-      const activeMember = members.find(m => m.email === email && m.status === 'active')
-      if (activeMember) {
-        console.log('[SePay] Tài khoản đã active rồi:', email)
-        return NextResponse.json({ success: true, message: 'Tài khoản đã được kích hoạt trước đó' })
-      }
-
-      console.log('[SePay] Không tìm thấy tài khoản pending với email:', email)
+    // Nếu prefix = KQ: yêu cầu ≥ 199k (trừ khi ≥ 266k thì là Nội Môn — ok)
+    // Nếu prefix = MSL hoặc null: yêu cầu ≥ 99k
+    const productMin = prefix === 'KQ' ? KHAUQUYET_MIN : MEMBERSHIP_MIN
+    if (payload.transferAmount < productMin && payload.transferAmount < UPGRADE_MIN) {
+      console.log(`[SePay] Số tiền không đủ cho prefix ${prefix || 'unknown'}: ${payload.transferAmount} < ${productMin}`)
       return NextResponse.json({
         success: false,
-        message: `Không tìm thấy tài khoản chờ kích hoạt với email: ${email}`
+        message: `Số tiền ${payload.transferAmount} không đủ ${productMin} cho sản phẩm ${prefix || 'unknown'}`
       })
     }
 
-    // ── 6. Kích hoạt tài khoản ────────────────────────────────
-    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-    await saveMember({ ...member, status: 'active', expiresAt, lastReferenceCode: payload.referenceCode })
-    console.log('[SePay] ✅ Đã kích hoạt tài khoản:', email)
+    // ── 6. Tìm thành viên với email này ────────────────────────
+    const member = members.find(m => m.email === email)
+
+    if (!member) {
+      console.log('[SePay] Không tìm thấy tài khoản với email:', email)
+      return NextResponse.json({
+        success: false,
+        message: `Không tìm thấy tài khoản với email: ${email}`
+      })
+    }
+
+    // ── 6. Phân nhánh theo TIER GIÁ (amount-based routing) ──
+    // Routing rules:
+    //   - Đã noimon active        → no-op (đã trọn đời)
+    //   - amount ≥ 266k + pending → "noimon-direct" (trọn gói 365k hoặc 266k thẳng, chưa từng active)
+    //   - amount ≥ 266k + active  → "noimon-upgrade" (nâng cấp từ ngoaimon)
+    //   - amount < 266k + pending → "ngoaimon-activate" (Khẩu Quyết 99k)
+    //   - còn lại                 → no-op (renewal 99k đã handle ở /api/auth/renew-status)
+    if (member.status === 'active' && member.tier === 'noimon') {
+      console.log('[SePay] Tài khoản đã là Nội Môn rồi:', email)
+      return NextResponse.json({ success: true, message: 'Tài khoản đã ở tier Nội Môn' })
+    }
+
+    const wantsNoiMon = payload.transferAmount >= UPGRADE_MIN
+    type Action = 'noimon-direct' | 'noimon-upgrade' | 'ngoaimon-activate' | 'noop'
+    let action: Action = 'noop'
+    if (member.status === 'pending' && wantsNoiMon) action = 'noimon-direct'
+    else if (member.status === 'active' && wantsNoiMon) action = 'noimon-upgrade'
+    else if (member.status === 'pending') action = 'ngoaimon-activate'
+
+    if (action === 'noop') {
+      console.log('[SePay] Không có hành động phù hợp cho:', email, 'status:', member.status, 'tier:', member.tier, 'amount:', payload.transferAmount)
+      return NextResponse.json({ success: true, message: 'Không có hành động phù hợp' })
+    }
+
+    const isNoiMon = action === 'noimon-direct' || action === 'noimon-upgrade'
+
+    // Lifetime cho Nội Môn = 10 năm, Khẩu Quyết = 30 ngày
+    const LIFETIME_MS = 10 * 365 * 24 * 60 * 60 * 1000
+    const MONTH_MS    = 30 * 24 * 60 * 60 * 1000
+    const expiresAt = new Date(Date.now() + (isNoiMon ? LIFETIME_MS : MONTH_MS)).toISOString()
+
+    const updated = {
+      ...member,
+      status: 'active' as const,
+      expiresAt,
+      ...(isNoiMon
+        ? { tier: 'noimon' as const, upgradedAt: new Date().toISOString(), upgradeReferenceCode: payload.referenceCode }
+        : { tier: 'ngoaimon' as const, lastReferenceCode: payload.referenceCode }
+      ),
+    }
+    await saveMember(updated)
+    const actionLabel = action === 'noimon-direct' ? 'Kích hoạt Nội Môn trọn gói'
+                     : action === 'noimon-upgrade' ? 'Nâng cấp Nội Môn'
+                     : 'Kích hoạt Khẩu Quyết'
+    console.log(`[SePay] ✅ ${actionLabel}:`, email)
 
     // ── 7. Gửi thông báo Telegram ─────────────────────────────
+    const notifySuffix = action === 'noimon-direct' ? ' (NỘI MÔN TRỌN GÓI)'
+                      : action === 'noimon-upgrade' ? ' (NÂNG CẤP NỘI MÔN)'
+                      : ''
     await notifyPaymentConfirmed({
-      name: member.name,
+      name: `${member.name}${notifySuffix}`,
       email: member.email,
       amount: payload.transferAmount,
       transferContent: content,
@@ -133,10 +194,16 @@ export async function POST(req: NextRequest) {
     })
 
     // ── 8. Gửi Purchase event lên Facebook + TikTok (Server CAPI) ──
-    // event_id phải khớp với client Pixel để cả 2 platform dedupe
-    const eventId = `purchase_register_${member.orderCode || payload.referenceCode}`
+    const sku = action === 'noimon-direct' ? 'msl-noimon-full'
+             : action === 'noimon-upgrade' ? 'msl-noimon-upgrade'
+             : 'msl-register'
+    const productName = isNoiMon ? 'Tàng Kinh Các Nội Môn' : 'Mind Sales Lab Membership'
+    const eventId = `purchase_${sku}_${payload.referenceCode}`
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
     const userAgent = req.headers.get('user-agent')
+    const eventSourceUrl = isNoiMon
+      ? 'https://www.tamlyhocvn.club/khau-quyet/nang-cap'
+      : 'https://www.tamlyhocvn.club/register/success'
 
     await Promise.all([
       sendPurchaseEvent({
@@ -149,10 +216,10 @@ export async function POST(req: NextRequest) {
           externalId: member.id,
         },
         amount: payload.transferAmount,
-        sku: 'msl-register',
-        productName: 'Mind Sales Lab Membership',
+        sku,
+        productName,
         eventId,
-        eventSourceUrl: 'https://www.tamlyhocvn.club/register/success',
+        eventSourceUrl,
       }),
       sendTikTokPurchaseEvent({
         user: {
@@ -163,16 +230,28 @@ export async function POST(req: NextRequest) {
           externalId: member.id,
         },
         amount: payload.transferAmount,
-        sku: 'msl-register',
-        productName: 'Mind Sales Lab Membership',
+        sku,
+        productName,
         eventId,
-        eventSourceUrl: 'https://www.tamlyhocvn.club/register/success',
+        eventSourceUrl,
       }),
     ])
 
+    // ── 9. Gửi email delivery: Nội Môn welcome (266k/365k) HOẶC PDF Khẩu Quyết (99k) ──
+    const deliveryResult = isNoiMon
+      ? await sendNoiMonDelivery({ to: member.email, name: member.name })
+      : await sendKhauQuyetDelivery({ to: member.email, name: member.name })
+    if (!deliveryResult.ok) {
+      console.error(`[SePay] ${isNoiMon ? 'Nội Môn' : 'Khẩu Quyết'} delivery failed:`, deliveryResult.error)
+    } else {
+      console.log(`[SePay] 📧 Đã gửi ${isNoiMon ? 'email Nội Môn' : 'PDF Khẩu Quyết'} cho:`, member.email)
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Đã kích hoạt tài khoản ${email} thành công`,
+      message: action === 'noimon-direct' ? `Đã kích hoạt ${email} ở tier Nội Môn (trọn gói)`
+             : action === 'noimon-upgrade' ? `Đã nâng cấp ${email} lên Nội Môn`
+             : `Đã kích hoạt tài khoản ${email}`,
     })
 
   } catch (err) {

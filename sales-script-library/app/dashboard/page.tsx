@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import DailyCheckIn from '@/components/DailyCheckIn'
 import EmailVerificationBanner from '@/components/EmailVerificationBanner'
+import KhauQuyetPaywall from '@/components/KhauQuyetPaywall'
 import TieuDeChatbot, { type TieuDeContext } from '@/components/TieuDeChatbot'
 import { isDayCompleted, getStreak } from '@/lib/progress'
 
@@ -25,7 +26,7 @@ interface RoadmapWeek {
 }
 
 interface Session {
-  member: { id: string; name: string; email: string; emailVerified?: boolean; expiresAt?: string | null; daysLeft?: number | null } | null
+  member: { id: string; name: string; email: string; emailVerified?: boolean; expiresAt?: string | null; daysLeft?: number | null; product?: string; tier?: string } | null
   isAdmin: boolean
 }
 
@@ -99,6 +100,16 @@ export default function DashboardPage() {
         </div>
       </div>
     )
+  }
+
+  // Khẩu Quyết buyers (not upgraded to Nội Môn) — gate dashboard (roadmap 30 ngày là Nội Môn content)
+  if (
+    session.member &&
+    session.member.product === 'khauquyet' &&
+    session.member.tier !== 'noimon' &&
+    !session.isAdmin
+  ) {
+    return <KhauQuyetPaywall email={session.member.email} />
   }
 
   const memberName = session.member?.name?.split(' ').pop() || 'bạn'

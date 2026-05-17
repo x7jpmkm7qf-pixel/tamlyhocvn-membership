@@ -11,12 +11,33 @@ const BANK = {
   code:    process.env.NEXT_PUBLIC_BANK_CODE    || 'MB',
   account: process.env.NEXT_PUBLIC_BANK_ACCOUNT || 'PENDING_MB_ACCOUNT',
   name:    process.env.NEXT_PUBLIC_BANK_NAME    || 'HAN VAN SON',
-  amount:  99000,
 }
 
-function getVietQR(content: string) {
+// Product config — keyed by `from` query param.
+// transferPrefix distinguishes the 2 products at webhook time so 99k from one
+// doesn't accidentally activate the other.
+const PRODUCTS = {
+  'khau-quyet': {
+    amount: 199000,
+    amountLabel: '199.000đ',
+    productName: 'Khẩu Quyết Phá Phản Đối',
+    productSubtitle: 'Bí kíp Ngoại Môn — 10 khẩu quyết',
+    sku: 'khauquyet-199k',
+    transferPrefix: 'KQ',
+  },
+  default: {
+    amount: 99000,
+    amountLabel: '99.000đ',
+    productName: 'Mind Sales Lab Membership',
+    productSubtitle: 'Gói thành viên Mind Sales Lab — 1 tháng',
+    sku: 'msl-register',
+    transferPrefix: 'MSL',
+  },
+} as const
+
+function getVietQR(content: string, amount: number) {
   const p = new URLSearchParams({
-    amount:      String(BANK.amount),
+    amount:      String(amount),
     addInfo:     content,
     accountName: BANK.name,
   })
@@ -47,12 +68,19 @@ function PaymentContent() {
   const router = useRouter()
   const email  = params.get('email') || ''
   const name   = params.get('name')  || ''
+  const from   = params.get('from')  || ''
+  // Khách đến từ /khau-quyet → sau khi kích hoạt, đưa vào upsell Nội Môn (kèm email để QR upsell tự điền)
+  const successRedirect = from === 'khau-quyet'
+    ? `/khau-quyet/nang-cap?email=${encodeURIComponent(email)}`
+    : '/dashboard'
+
+  const product = from === 'khau-quyet' ? PRODUCTS['khau-quyet'] : PRODUCTS.default
 
   // Normalize email: bỏ @ và . để MB Bank không strip mất ký tự
   // VD: "dolphin@gmail.com" → "dolphingmailcom"
   const emailNorm = email.toLowerCase().replace(/[@.]/g, '')
-  const transferContent = `MSL ${emailNorm}`
-  const qrUrl = getVietQR(transferContent)
+  const transferContent = `${product.transferPrefix} ${emailNorm}`
+  const qrUrl = getVietQR(transferContent, product.amount)
 
   // ── QR image preload ───────────────────────────────────
   const [qrLoaded, setQrLoaded] = useState(false)
@@ -77,10 +105,12 @@ function PaymentContent() {
     const poll = async () => {
       try {
         setPollCount(c => c + 1)
-        const res  = await fetch(`/api/auth/check-status?email=${encodeURIComponent(email)}&t=${Date.now()}`, { cache: 'no-store' })
+        const res  = await fetch(`/api/auth/check-status?email=${encodeURIComponent(email)}&expectedAmount=${product.amount}&prefix=${product.transferPrefix}&t=${Date.now()}`, { cache: 'no-store' })
         const data = await res.json()
         if (data.status === 'active') {
           setPaymentStatus('success')
+          // Set flag để /cam-on detect tier="khauquyet"
+          try { localStorage.setItem('khauquyet_order_id', email) } catch {}
           if (intervalRef.current) clearInterval(intervalRef.current)
 
           // Đếm ngược 3 giây rồi redirect
@@ -91,7 +121,7 @@ function PaymentContent() {
             setCountdown(count)
             if (count <= 0) {
               if (countdownRef.current) clearInterval(countdownRef.current)
-              router.push('/dashboard')
+              router.push(successRedirect)
             }
           }, 1000)
         }
@@ -113,7 +143,7 @@ function PaymentContent() {
       if (countdownRef.current) clearInterval(countdownRef.current)
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [email, router])
+  }, [email, router, successRedirect])
 
   // ── Success overlay ────────────────────────────────────
   if (paymentStatus === 'success') {
@@ -142,10 +172,10 @@ function PaymentContent() {
             </div>
 
             <Link
-              href="/dashboard"
+              href={successRedirect}
               className="block w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 rounded-xl transition shadow-md shadow-violet-200 text-sm"
             >
-              Vào trang chính ngay →
+              {from === 'khau-quyet' ? 'Xem ưu đãi nâng cấp Nội Môn →' : 'Vào trang chính ngay →'}
             </Link>
           </div>
         </div>
@@ -159,8 +189,8 @@ function PaymentContent() {
 
       <TrackEventOnMount
         event="InitiateCheckout"
-        params={{ value: 99000, currency: 'VND', content_ids: ['msl-register'], content_name: 'Mind Sales Lab Membership', content_type: 'product' }}
-        dedupeKey="checkout_register"
+        params={{ value: product.amount, currency: 'VND', content_ids: [product.sku], content_name: product.productName, content_type: 'product' }}
+        dedupeKey={`checkout_${product.sku}`}
       />
 
       {/* Logo */}
@@ -184,8 +214,8 @@ function PaymentContent() {
 
         {/* Header */}
         <div className="bg-gradient-to-r from-violet-600 to-violet-700 px-6 py-5 text-white text-center">
-          <div className="text-3xl font-black mb-1">99.000đ</div>
-          <p className="text-violet-200 text-sm">Gói thành viên Mind Sales Lab — 1 tháng</p>
+          <div className="text-3xl font-black mb-1">{product.amountLabel}</div>
+          <p className="text-violet-200 text-sm">{product.productSubtitle}</p>
           {name && <p className="text-white font-semibold text-sm mt-1">Xin chào, {name}! 👋</p>}
         </div>
 
@@ -227,7 +257,7 @@ function PaymentContent() {
               { label: 'Ngân hàng',      value: 'MB Bank' },
               { label: 'Số tài khoản',   value: BANK.account },
               { label: 'Chủ tài khoản',  value: BANK.name },
-              { label: 'Số tiền',        value: '99.000đ', hl: true },
+              { label: 'Số tiền',        value: product.amountLabel, hl: true },
               { label: 'Nội dung CK',    value: transferContent, hl: true },
             ].map((r, i) => (
               <div key={i} className="flex items-center justify-between gap-2">

@@ -8,7 +8,20 @@ interface Script {
   id: string; title: string; industry: string; situation: string
   preview: string; content: string; psychology: string; examples: string; createdAt: string
 }
-interface Member { id: string; name: string; email: string; phone?: string; status?: 'pending' | 'active'; createdAt: string; expiresAt?: string }
+interface Member {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  status?: 'pending' | 'active'
+  createdAt: string
+  expiresAt?: string
+  tier?: 'ngoaimon' | 'noimon'
+  upgradedAt?: string
+  lastReferenceCode?: string
+  upgradeReferenceCode?: string
+  emailVerified?: boolean
+}
 
 type FreeLeadStatus = 'new' | 'contacted' | 'converted' | 'lost'
 interface FreeLead {
@@ -59,6 +72,8 @@ function AdminPageInner() {
   const [showForm, setShowForm] = useState(false)
   const [memberForm, setMemberForm] = useState({ name: '', email: '', password: '' })
   const [showMemberForm, setShowMemberForm] = useState(false)
+  const [memberFilter, setMemberFilter] = useState<'all' | 'noimon' | 'ngoaimon' | 'pending'>('all')
+  const [memberSearch, setMemberSearch] = useState('')
   const [msg, setMsg] = useState('')
   const [authed, setAuthed] = useState<boolean | null>(null)
 
@@ -358,29 +373,83 @@ function AdminPageInner() {
         )}
 
         {/* Members tab */}
-        {tab === 'members' && (
+        {tab === 'members' && (() => {
+          const activeMembers = members.filter(m => m.status === 'active')
+          const noimonMembers = activeMembers.filter(m => m.tier === 'noimon')
+          const ngoaimonMembers = activeMembers.filter(m => m.tier !== 'noimon')
+          const pendingMembers = members.filter(m => m.status === 'pending')
+
+          // Doanh thu ước tính: mỗi noimon = 266k (assume sớm — chưa phân biệt 266 vs 365), mỗi ngoaimon = 99k
+          const revenueNoimon = noimonMembers.length * 266000
+          const revenueNgoaimon = ngoaimonMembers.length * 99000
+          const totalRevenue = revenueNoimon + revenueNgoaimon
+
+          // Áp dụng filter + search
+          const search = memberSearch.toLowerCase().trim()
+          const filtered = members.filter(m => {
+            // Filter theo nhóm
+            if (memberFilter === 'pending' && m.status !== 'pending') return false
+            if (memberFilter === 'noimon' && (m.status !== 'active' || m.tier !== 'noimon')) return false
+            if (memberFilter === 'ngoaimon' && (m.status !== 'active' || m.tier === 'noimon')) return false
+            if (memberFilter === 'all' && m.status !== 'active') return false
+            // Filter theo search
+            if (search) {
+              const hay = `${m.name} ${m.email} ${m.phone || ''}`.toLowerCase()
+              if (!hay.includes(search)) return false
+            }
+            return true
+          })
+
+          const fmtVND = (n: number) => n.toLocaleString('vi-VN') + 'đ'
+          const fmtDate = (s?: string) => s ? new Date(s).toLocaleDateString('vi-VN') : '—'
+          const fmtDateTime = (s?: string) => s ? new Date(s).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'
+
+          return (
           <div>
-            {/* Pending members alert */}
-            {members.filter(m => m.status === 'pending').length > 0 && (
+            {/* ===== Dashboard cards ===== */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+              <div className="bg-white rounded-2xl border border-slate-200 p-4">
+                <p className="text-xs font-medium text-slate-500 mb-1">Tổng khách</p>
+                <p className="text-2xl font-bold text-slate-800">{activeMembers.length}</p>
+                <p className="text-xs text-slate-400 mt-1">Active · không tính pending</p>
+              </div>
+              <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl border border-amber-200 p-4">
+                <p className="text-xs font-medium text-amber-700 mb-1">🏯 Nội Môn (266k+)</p>
+                <p className="text-2xl font-bold text-amber-700">{noimonMembers.length}</p>
+                <p className="text-xs text-amber-600 mt-1">~ {fmtVND(revenueNoimon)}</p>
+              </div>
+              <div className="bg-gradient-to-br from-violet-50 to-violet-100 rounded-2xl border border-violet-200 p-4">
+                <p className="text-xs font-medium text-violet-700 mb-1">📜 Ngoại Môn (99k)</p>
+                <p className="text-2xl font-bold text-violet-700">{ngoaimonMembers.length}</p>
+                <p className="text-xs text-violet-600 mt-1">~ {fmtVND(revenueNgoaimon)}</p>
+              </div>
+              <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl border border-emerald-200 p-4">
+                <p className="text-xs font-medium text-emerald-700 mb-1">💰 Tổng doanh thu</p>
+                <p className="text-2xl font-bold text-emerald-700">{fmtVND(totalRevenue)}</p>
+                <p className="text-xs text-emerald-600 mt-1">Ước tính theo tier</p>
+              </div>
+            </div>
+
+            {/* ===== Pending alert ===== */}
+            {pendingMembers.length > 0 && (
               <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 mb-5">
                 <p className="text-sm font-bold text-amber-700 mb-3 flex items-center gap-2">
-                  ⏳ Chờ kích hoạt ({members.filter(m => m.status === 'pending').length} tài khoản)
+                  ⏳ Chờ kích hoạt ({pendingMembers.length} tài khoản) — đã đăng ký nhưng chưa CK / CK chưa khớp
                 </p>
                 <div className="space-y-2">
-                  {members.filter(m => m.status === 'pending').map(m => (
+                  {pendingMembers.map(m => (
                     <div key={m.id} className="bg-white border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-slate-800 truncate">{m.name}</p>
-                        <p className="text-xs text-slate-500 truncate">{m.email}{m.phone ? ` · ${m.phone}` : ''}</p>
-                        <p className="text-xs text-slate-400">Đăng ký: {new Date(m.createdAt).toLocaleString('vi-VN')}</p>
+                        <p className="text-xs text-slate-500 truncate">
+                          {m.email}
+                          {m.phone && <> · <a href={`tel:${m.phone}`} className="text-violet-600 hover:underline">{m.phone}</a></>}
+                          {m.phone && <> · <a href={`https://zalo.me/${m.phone}`} target="_blank" rel="noopener" className="text-emerald-600 hover:underline">Zalo</a></>}
+                        </p>
+                        <p className="text-xs text-slate-400">Đăng ký: {fmtDateTime(m.createdAt)}</p>
                       </div>
                       <div className="flex gap-2 shrink-0">
-                        <button
-                          onClick={() => activateMember(m.id)}
-                          className="text-xs bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg transition"
-                        >
-                          ✓ Kích hoạt
-                        </button>
+                        <button onClick={() => activateMember(m.id)} className="text-xs bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg transition">✓ Kích hoạt</button>
                         <button onClick={() => delMember(m.id)} className="text-xs text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg transition">Xóa</button>
                       </div>
                     </div>
@@ -389,10 +458,22 @@ function AdminPageInner() {
               </div>
             )}
 
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-slate-800">Thành viên đang hoạt động</h2>
-              <button onClick={() => setShowMemberForm(!showMemberForm)} className="bg-amber-500 hover:bg-amber-400 text-slate-900 text-sm font-semibold px-4 py-2 rounded-xl transition">
-                {showMemberForm ? '✕ Đóng' : '+ Thêm thủ công'}
+            {/* ===== Filter + search + action ===== */}
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <button onClick={() => setMemberFilter('all')} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition ${memberFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-400'}`}>Tất cả active ({activeMembers.length})</button>
+              <button onClick={() => setMemberFilter('noimon')} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition ${memberFilter === 'noimon' ? 'bg-amber-500 text-white' : 'bg-white border border-amber-200 text-amber-700 hover:border-amber-400'}`}>🏯 Nội Môn ({noimonMembers.length})</button>
+              <button onClick={() => setMemberFilter('ngoaimon')} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition ${memberFilter === 'ngoaimon' ? 'bg-violet-600 text-white' : 'bg-white border border-violet-200 text-violet-700 hover:border-violet-400'}`}>📜 Ngoại Môn ({ngoaimonMembers.length})</button>
+              <button onClick={() => setMemberFilter('pending')} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition ${memberFilter === 'pending' ? 'bg-orange-500 text-white' : 'bg-white border border-orange-200 text-orange-700 hover:border-orange-400'}`}>⏳ Pending ({pendingMembers.length})</button>
+
+              <input
+                value={memberSearch}
+                onChange={e => setMemberSearch(e.target.value)}
+                placeholder="🔍 Tìm theo tên, email, SĐT..."
+                className="flex-1 min-w-[200px] text-sm border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-violet-400"
+              />
+
+              <button onClick={() => setShowMemberForm(!showMemberForm)} className="bg-amber-500 hover:bg-amber-400 text-slate-900 text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+                {showMemberForm ? '✕ Đóng' : '+ Thêm tay'}
               </button>
             </div>
 
@@ -420,46 +501,105 @@ function AdminPageInner() {
               </div>
             )}
 
+            {/* ===== Bảng members ===== */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-              {members.filter(m => m.status !== 'pending').length === 0 ? (
-                <p className="text-center text-slate-500 py-8 text-sm">Chưa có thành viên nào đang hoạt động</p>
+              {filtered.length === 0 ? (
+                <p className="text-center text-slate-500 py-8 text-sm">
+                  Không có khách nào khớp bộ lọc {memberSearch ? `"${memberSearch}"` : ''}
+                </p>
               ) : (
-                <table className="w-full">
-                  <thead className="bg-slate-50 border-b border-slate-100">
-                    <tr>
-                      <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Tên</th>
-                      <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Email</th>
-                      <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden md:table-cell">SĐT</th>
-                      <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden sm:table-cell">Hạn dùng</th>
-                      <th className="px-4 py-3"></th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {members.filter(m => m.status !== 'pending').map(m => (
-                      <tr key={m.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 text-sm font-medium text-slate-700">{m.name}</td>
-                        <td className="px-4 py-3 text-sm text-slate-500">{m.email}</td>
-                        <td className="px-4 py-3 text-sm text-slate-500 hidden md:table-cell">
-                          {m.phone ? (
-                            <a href={`tel:${m.phone}`} className="text-violet-600 hover:text-violet-700 hover:underline">{m.phone}</a>
-                          ) : (
-                            <span className="text-slate-300">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-slate-400 hidden sm:table-cell">
-                          {m.expiresAt ? new Date(m.expiresAt).toLocaleDateString('vi-VN') : 'Không giới hạn'}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <button onClick={() => delMember(m.id)} className="text-xs text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg transition">Xóa</button>
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50 border-b border-slate-100">
+                      <tr>
+                        <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Khách</th>
+                        <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Gói đã mua</th>
+                        <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden md:table-cell">Ngày đóng tiền</th>
+                        <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden lg:table-cell">Hạn dùng</th>
+                        <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden xl:table-cell">SePay Ref</th>
+                        <th className="px-4 py-3"></th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {filtered.map(m => {
+                        const isNoimon = m.tier === 'noimon'
+                        const isPending = m.status === 'pending'
+                        // Ngày đóng tiền: upgradedAt (nếu noimon) > createdAt (fallback) — vì user pay 99k lúc register
+                        const paidDate = isNoimon ? (m.upgradedAt || m.createdAt) : m.createdAt
+                        // Số tiền đã trả
+                        const paidAmount = isPending ? 0 : (isNoimon ? 266000 : 99000)
+                        const refCode = m.upgradeReferenceCode || m.lastReferenceCode
+
+                        return (
+                          <tr key={m.id} className="hover:bg-slate-50">
+                            <td className="px-4 py-3">
+                              <p className="text-sm font-medium text-slate-800">{m.name}</p>
+                              <p className="text-xs text-slate-500">{m.email}</p>
+                              {m.phone && (
+                                <p className="text-xs mt-0.5">
+                                  <a href={`tel:${m.phone}`} className="text-violet-600 hover:underline">{m.phone}</a>
+                                  {' · '}
+                                  <a href={`https://zalo.me/${m.phone}`} target="_blank" rel="noopener" className="text-emerald-600 hover:underline">Zalo</a>
+                                </p>
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              {isPending ? (
+                                <span className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 text-xs font-semibold px-2.5 py-1 rounded-md">
+                                  ⏳ Chờ CK
+                                </span>
+                              ) : isNoimon ? (
+                                <div>
+                                  <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-amber-600 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-sm">
+                                    🏯 Nội Môn
+                                  </span>
+                                  <p className="text-xs font-bold text-amber-700 mt-1">{fmtVND(paidAmount)}</p>
+                                </div>
+                              ) : (
+                                <div>
+                                  <span className="inline-flex items-center gap-1 bg-violet-100 text-violet-700 text-xs font-bold px-2.5 py-1 rounded-md">
+                                    📜 Ngoại Môn
+                                  </span>
+                                  <p className="text-xs font-bold text-violet-700 mt-1">{fmtVND(paidAmount)}</p>
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-600 hidden md:table-cell">
+                              {fmtDateTime(paidDate)}
+                              {isNoimon && m.upgradedAt && (
+                                <p className="text-xs text-slate-400 mt-0.5">Đăng ký: {fmtDate(m.createdAt)}</p>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-500 hidden lg:table-cell">
+                              {m.expiresAt ? (
+                                <>
+                                  {fmtDate(m.expiresAt)}
+                                  {isNoimon && <p className="text-xs text-amber-600 font-medium">Lifetime</p>}
+                                </>
+                              ) : (
+                                <span className="text-slate-300">—</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-xs font-mono text-slate-400 hidden xl:table-cell">
+                              {refCode || <span className="text-slate-300">—</span>}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              {isPending && (
+                                <button onClick={() => activateMember(m.id)} className="text-xs bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg transition mr-1">✓ Kích hoạt</button>
+                              )}
+                              <button onClick={() => delMember(m.id)} className="text-xs text-red-500 hover:text-red-600 bg-red-50 hover:bg-red-100 px-2.5 py-1.5 rounded-lg transition">Xóa</button>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           </div>
-        )}
+          )
+        })()}
 
         {/* Leads tab */}
         {tab === 'leads' && (

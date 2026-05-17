@@ -32,6 +32,15 @@ export interface Member {
   verificationSentAt?: string
   // Renewal tracking
   lastReferenceCode?: string   // SePay reference of last confirmed payment
+  // Tier — ngoaimon (Khẩu Quyết 199k hoặc Membership 99k) vs noimon (Tàng Kinh Các Nội Môn 300k/499k)
+  tier?: 'ngoaimon' | 'noimon'
+  upgradeReferenceCode?: string  // SePay ref khi nâng cấp lên Nội Môn
+  upgradedAt?: string
+  // Product — sản phẩm gốc khi member đăng ký. Phân biệt 2 sản phẩm cùng tier ngoaimon:
+  // - 'khauquyet': mua trên /khau-quyet (199k, chỉ truy cập PDF Khẩu Quyết qua email)
+  // - 'membership': mua trên /register (99k/tháng, truy cập library kịch bản)
+  // - undefined: legacy members (treat as 'membership' để không break access cũ)
+  product?: 'khauquyet' | 'membership'
 }
 
 // ── File-based storage (read-only, for static content) ─────────────────────

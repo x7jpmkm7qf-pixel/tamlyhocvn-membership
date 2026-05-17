@@ -21,8 +21,13 @@ export async function GET() {
     ? Math.floor((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null
 
+  // Product + tier for client-side gating.
+  // Legacy members (product undefined) treated as 'membership' to preserve existing access.
+  const product = stored?.product ?? 'membership'
+  const tier = stored?.tier ?? 'ngoaimon'
+
   return NextResponse.json({
-    member: { ...session, emailVerified, expiresAt, daysLeft },
+    member: { ...session, emailVerified, expiresAt, daysLeft, product, tier },
     isAdmin,
   })
 }

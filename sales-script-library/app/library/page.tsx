@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
+import KhauQuyetPaywall from '@/components/KhauQuyetPaywall'
 import { INDUSTRY_LABELS, SITUATION_LABELS, INDUSTRY_COLORS, SITUATION_COLORS } from '@/lib/constants'
 
 interface Script {
@@ -40,6 +41,7 @@ export default function LibraryPage() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [authed, setAuthed] = useState<boolean | null>(null)
+  const [gated, setGated] = useState<{ email?: string } | null>(null)
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -47,6 +49,13 @@ export default function LibraryPage() {
       .then(data => {
         if (!data.member && !data.isAdmin) {
           router.push('/login')
+          return
+        }
+        // Khẩu Quyết buyers (not yet upgraded to Nội Môn) — show paywall instead of library
+        const m = data.member
+        if (m && m.product === 'khauquyet' && m.tier !== 'noimon' && !data.isAdmin) {
+          setGated({ email: m.email })
+          setAuthed(true)
           return
         }
         setAuthed(true)
@@ -74,6 +83,10 @@ export default function LibraryPage() {
         <div className="w-6 h-6 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
       </div>
     )
+  }
+
+  if (gated) {
+    return <KhauQuyetPaywall email={gated.email} />
   }
 
   return (

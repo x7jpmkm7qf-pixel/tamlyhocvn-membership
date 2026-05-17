@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMember } from '@/lib/data'
-import { setMemberCookie, MEMBER_COOKIE_NAME } from '@/lib/auth'
+import { getMember, saveMember } from '@/lib/data'
+import { setMemberCookie, MEMBER_COOKIE_NAME, verifyPassword, isHashedPassword, hashPassword } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json()
@@ -10,8 +10,18 @@ export async function POST(req: NextRequest) {
   }
 
   const member = await getMember(email.toLowerCase().trim())
-  if (!member || member.password !== password) {
+  if (!member || !(await verifyPassword(password, member.password))) {
     return NextResponse.json({ error: 'Email hoặc mật khẩu không đúng' }, { status: 401 })
+  }
+
+  // Migrate legacy plaintext password → bcrypt on successful login
+  if (!isHashedPassword(member.password)) {
+    try {
+      const hashed = await hashPassword(password)
+      await saveMember({ ...member, password: hashed })
+    } catch (e) {
+      console.error('[login] password migration failed:', e)
+    }
   }
 
   if (member.status === 'pending') {

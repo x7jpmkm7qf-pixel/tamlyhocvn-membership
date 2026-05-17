@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
+import KhauQuyetPaywall from '@/components/KhauQuyetPaywall'
 import { INDUSTRY_LABELS, SITUATION_LABELS, INDUSTRY_COLORS, SITUATION_COLORS } from '@/lib/constants'
 
 interface Script {
@@ -20,7 +21,7 @@ interface Script {
 }
 
 interface Session {
-  member: { id: string; name: string; email: string } | null
+  member: { id: string; name: string; email: string; product?: string; tier?: string } | null
   isAdmin: boolean
 }
 
@@ -95,6 +96,17 @@ export default function ScriptDetailPage() {
   }
 
   const isLoggedIn = session?.member || session?.isAdmin
+
+  // Khẩu Quyết buyers (not upgraded to Nội Môn) can't open kịch bản detail
+  const isKhauQuyetGated =
+    session?.member &&
+    session.member.product === 'khauquyet' &&
+    session.member.tier !== 'noimon' &&
+    !session.isAdmin
+
+  if (isKhauQuyetGated) {
+    return <KhauQuyetPaywall email={session.member?.email} />
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">

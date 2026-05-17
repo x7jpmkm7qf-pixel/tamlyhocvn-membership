@@ -42,42 +42,32 @@ function ThankYouContent() {
       <div className="max-w-2xl mx-auto px-4 py-16 sm:py-20">
         {/* Welcome */}
         <div className="text-center mb-10">
-          <div className="text-6xl mb-4">🎁</div>
+          <div className="text-6xl mb-4">📜</div>
           <h1
             className="text-3xl sm:text-4xl font-extrabold text-[#7C2D12] mb-3"
             style={{ fontFamily: '"Noto Serif", Georgia, serif' }}
           >
-            Cảm ơn {name}!
+            Cảm ơn {name} đã đăng ký!
           </h1>
           <p className="text-stone-700 text-base sm:text-lg leading-relaxed">
-            Em đã ghi nhận đăng ký của anh/chị.
+            Bản Đồ 4 Loại Khách Hàng đang trên đường tới hộp thư của anh/chị.
           </p>
         </div>
 
         {/* Email confirm box */}
         <div className="bg-white border-2 border-[#C9A961] rounded-lg p-6 mb-8 text-center">
-          <p className="text-sm text-stone-500 mb-2">📧 Bản đồ sẽ được gửi đến</p>
+          <p className="text-sm text-stone-500 mb-2">📧 Em đã gửi PDF qua email</p>
           <p
             className="text-lg font-bold text-[#7C2D12] break-all"
             style={{ fontFamily: '"Noto Serif", Georgia, serif' }}
           >
             {email || 'email của anh/chị'}
           </p>
-          <p className="text-xs text-stone-500 mt-3 leading-relaxed">
-            Nếu sau 5 phút chưa thấy email — anh/chị kiểm tra hộp <strong>Spam / Promotions</strong> giúp em nhé.
+          <p className="text-sm text-stone-700 mt-4 leading-relaxed">
+            Vui lòng check <strong>inbox</strong> — và đừng quên kiểm tra cả hộp <strong>Spam / Promotions</strong> giúp em.
           </p>
-        </div>
-
-        {/* PDF placeholder notice */}
-        <div className="bg-[#F5EAD2]/60 border-l-4 border-[#7C2D12] rounded-r-md p-5 mb-10">
-          <p
-            className="font-bold text-[#7C2D12] mb-1"
-            style={{ fontFamily: '"Noto Serif", Georgia, serif' }}
-          >
-            📜 Một lưu ý nhỏ
-          </p>
-          <p className="text-sm text-stone-700 leading-relaxed">
-            Em đang trau chuốt PDF &quot;Bản Đồ 4 Loại Khách Hàng&quot; — bản hoàn chỉnh sẽ gửi cho anh/chị qua chính email vừa đăng ký, trong vài ngày tới. Cảm ơn anh/chị đã kiên nhẫn 🙏
+          <p className="text-xs text-stone-500 mt-2 leading-relaxed">
+            Nếu sau 5 phút chưa thấy email, anh/chị nhắn Zalo <a href="tel:0961588227" className="text-[#7C2D12] font-semibold">0961 588 227</a> em gửi lại ngay.
           </p>
         </div>
 
@@ -88,10 +78,10 @@ function ThankYouContent() {
             className="text-xl sm:text-2xl font-extrabold text-[#7C2D12] mb-3"
             style={{ fontFamily: '"Noto Serif", Georgia, serif' }}
           >
-            Trong lúc chờ Bản Đồ...
+            Trong lúc chờ, xem qua 10 Khẩu Quyết Phá Phản Đối
           </h2>
           <p className="text-stone-700 leading-relaxed mb-4 text-sm sm:text-base">
-            Em có sẵn <strong>10 Khẩu Quyết Phá Phản Đối</strong> — câu mẫu word-for-word xử lý 10 phản đối kinh điển nhất.
+            Câu mẫu <strong>word-for-word</strong> xử lý 10 phản đối kinh điển nhất — đọc đến đâu áp dụng được đến đó.
           </p>
           <p className="text-sm text-stone-600 mb-6 leading-relaxed">
             Bản đồ giúp anh/chị <strong>HIỂU</strong> khách.

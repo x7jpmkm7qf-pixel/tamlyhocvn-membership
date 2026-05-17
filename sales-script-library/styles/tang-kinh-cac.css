@@ -1,0 +1,244 @@
+/* ── Tàng Kinh Các — Reader styles ─────────────────────────────────────────
+   Brand palette (from khau-quyet.html):
+   parchment: #FEF7E6  |  ink: #1C1917  |  seal: #7C2D12  |  gold: #C9A961
+   Navy reader bg (tailwind navy-*): #040e1c / #091b30 / #0f2744
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Section title / chapter label ──────────────────────────────────────── */
+.tkc-section-title {
+  display: inline-block;
+  font-family: 'Cormorant Garamond', 'Noto Serif', Georgia, serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #C9A961;
+  border-bottom: 1px solid rgba(201, 169, 97, 0.35);
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Chapter headings ────────────────────────────────────────────────────── */
+.tkc-content h2 {
+  font-family: 'Cormorant Garamond', 'Noto Serif', Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #FEF7E6;
+  line-height: 1.25;
+  margin-bottom: 1.25rem;
+  margin-top: 0.5rem;
+}
+
+.tkc-content h3 {
+  font-family: 'Cormorant Garamond', 'Noto Serif', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #C9A961;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+/* ── Body text ───────────────────────────────────────────────────────────── */
+.tkc-content p {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  color: #e8dcc8;
+  margin-bottom: 1rem;
+}
+
+.tkc-content ul,
+.tkc-content ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  color: #e8dcc8;
+}
+
+.tkc-content li {
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  margin-bottom: 0.375rem;
+}
+
+.tkc-content strong {
+  color: #FEF7E6;
+  font-weight: 600;
+}
+
+.tkc-content em {
+  color: #d4c4a0;
+  font-style: italic;
+}
+
+/* ── Script box — highlighted example/script block ──────────────────────── */
+.tkc-script-box {
+  background: rgba(201, 169, 97, 0.08);
+  border: 1px solid rgba(201, 169, 97, 0.3);
+  border-left: 3px solid #C9A961;
+  border-radius: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #e8dcc8;
+}
+
+.tkc-script-box p {
+  margin-bottom: 0.5rem;
+  font-style: italic;
+}
+
+.tkc-script-box ul {
+  margin-bottom: 0;
+}
+
+.tkc-script-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #C9A961;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Insight box — key insight callout ───────────────────────────────────── */
+.tkc-insight-box {
+  background: rgba(254, 247, 230, 0.06);
+  border: 1px solid rgba(254, 247, 230, 0.15);
+  border-radius: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  color: #e8dcc8;
+}
+
+.tkc-insight-box strong {
+  display: block;
+  color: #FEF7E6;
+  font-size: 1.0625rem;
+  margin-bottom: 0.5rem;
+}
+
+.tkc-insight-box p {
+  margin-bottom: 0.375rem;
+  font-size: 0.9375rem;
+}
+
+.tkc-insight-box.tkc-warning {
+  background: rgba(124, 45, 18, 0.12);
+  border-color: rgba(124, 45, 18, 0.3);
+}
+
+/* ── Quote block ─────────────────────────────────────────────────────────── */
+.tkc-quote {
+  border-left: 3px solid #7C2D12;
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  background: rgba(124, 45, 18, 0.08);
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-family: 'Cormorant Garamond', 'Noto Serif', Georgia, serif;
+  font-size: 1.1rem;
+  font-style: italic;
+  color: #FEF7E6;
+  line-height: 1.65;
+}
+
+.tkc-quote strong {
+  display: block;
+  font-style: normal;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #C9A961;
+  letter-spacing: 0.04em;
+}
+
+.tkc-quote p {
+  margin-bottom: 0;
+  font-size: 0.9375rem;
+  font-style: normal;
+}
+
+.tkc-quote a {
+  color: #C9A961;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── Table ───────────────────────────────────────────────────────────────── */
+.tkc-table-wrapper {
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(201, 169, 97, 0.2);
+}
+
+.tkc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tkc-table thead tr {
+  background: rgba(201, 169, 97, 0.12);
+  border-bottom: 1px solid rgba(201, 169, 97, 0.3);
+}
+
+.tkc-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #C9A961;
+  white-space: nowrap;
+}
+
+.tkc-table td {
+  padding: 0.75rem 1rem;
+  color: #e8dcc8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: top;
+  line-height: 1.55;
+}
+
+.tkc-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tkc-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tkc-table td:first-child {
+  color: #FEF7E6;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tkc-quiz-table th,
+.tkc-quiz-table td {
+  font-size: 0.8125rem;
+  padding: 0.625rem 0.75rem;
+}
+
+.tkc-cheatsheet td:first-child {
+  width: 130px;
+}
+
+/* ── Note text ───────────────────────────────────────────────────────────── */
+.tkc-note {
+  font-size: 0.875rem !important;
+  color: #a09070 !important;
+  line-height: 1.6 !important;
+}
+
+/* ── Author byline ───────────────────────────────────────────────────────── */
+.tkc-author-byline {
+  font-size: 0.9375rem;
+  color: #C9A961;
+  font-style: italic;
+  border-bottom: 1px solid rgba(201, 169, 97, 0.2);
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem !important;
+}
