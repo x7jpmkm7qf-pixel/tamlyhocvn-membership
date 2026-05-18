@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface Props {
@@ -16,10 +16,8 @@ function getMessage(idx: number): { icon: string; text: string } {
 
 export default function KQUpsellStickyBar({ chapterIndex }: Props) {
   const router = useRouter()
-  const [dismissed, setDismissed] = useState(true) // hidden until localStorage checked
-  const [scrollVisible, setScrollVisible] = useState(true)
+  const [dismissed, setDismissed] = useState(true)
   const [mounted, setMounted] = useState(false)
-  const lastScrollY = useRef(0)
 
   useEffect(() => {
     setMounted(true)
@@ -29,21 +27,7 @@ export default function KQUpsellStickyBar({ chapterIndex }: Props) {
     } else {
       setDismissed(false)
     }
-    lastScrollY.current = window.scrollY
   }, [])
-
-  const handleScroll = useCallback(() => {
-    const y = window.scrollY
-    const delta = y - lastScrollY.current
-    if (delta > 8) setScrollVisible(false)
-    else if (delta < -8) setScrollVisible(true)
-    lastScrollY.current = y
-  }, [])
-
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [handleScroll])
 
   const handleDismiss = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -54,7 +38,6 @@ export default function KQUpsellStickyBar({ chapterIndex }: Props) {
   if (!mounted || dismissed) return null
 
   const { icon, text } = getMessage(chapterIndex)
-  const isVisible = scrollVisible
 
   return (
     <>
@@ -64,26 +47,18 @@ export default function KQUpsellStickyBar({ chapterIndex }: Props) {
           to   { transform: translateY(0);    opacity: 1; }
         }
         .tkc-kq-sticky {
-          animation: tkc-kq-slidein 0.3s cubic-bezier(0.16,1,0.3,1);
-          transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), opacity 0.2s;
+          animation: tkc-kq-slidein 0.3s cubic-bezier(0.16,1,0.3,1) both;
         }
-        .tkc-kq-sticky.scrollhidden {
-          transform: translateY(100%);
-          opacity: 0;
-          pointer-events: none;
-        }
-        /* Mobile: sit above the chapter nav bar (~52px tall) */
         @media (max-width: 767px) {
           .tkc-kq-sticky { bottom: 52px !important; height: 56px !important; }
         }
-        /* Desktop: sit at very bottom, taller */
         @media (min-width: 768px) {
           .tkc-kq-sticky { bottom: 0 !important; height: 64px !important; }
         }
       `}</style>
 
       <div
-        className={`tkc-kq-sticky${isVisible ? '' : ' scrollhidden'}`}
+        className="tkc-kq-sticky"
         style={{
           position: 'fixed',
           left: 0,
