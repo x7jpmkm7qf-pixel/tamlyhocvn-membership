@@ -4,6 +4,9 @@ import { getMemberSession } from '@/lib/auth'
 import { getMember } from '@/lib/data'
 import { getCourseBySlug, getCourseContent, getEnrollment, enrollUser, markChapterRead } from '@/lib/courses'
 import TKCWelcomeDialog from '@/components/TKCWelcomeDialog'
+import KQUpsellStickyBar from '@/components/KQUpsellStickyBar'
+import KQUpsellSidebarCard from '@/components/KQUpsellSidebarCard'
+import KQUpsellInlineCard from '@/components/KQUpsellInlineCard'
 import '@/styles/tang-kinh-cac.css'
 
 export const dynamic = 'force-dynamic'
@@ -28,6 +31,14 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
   let enrollment = await getEnrollment(session.id, course.id)
   if (!enrollment) {
     enrollment = await enrollUser(session.id, course.id)
+  }
+
+  // KQ upsell: check payment enrollment only for the free ban-do course
+  const isBanDo = params.slug === 'ban-do'
+  let kqActive = true // default: hide upsell
+  if (isBanDo) {
+    const member = await getMember(session.email)
+    kqActive = member?.enrollments?.['khau-quyet']?.status === 'active'
   }
 
   // Paywall: paid chapter on a paid course requires active payment enrollment
@@ -97,6 +108,9 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
   const chaptersRead = new Set(updatedEnrollment?.chaptersRead ?? [])
   const showWelcome = searchParams.welcome === 'true'
 
+  // Show KQ upsell layers from chapter index 2 onwards for non-KQ members on ban-do
+  const showUpsell = isBanDo && !kqActive && currentIdx >= 2
+
   return (
     <div style={{ minHeight: '100vh', background: '#091b30', display: 'flex', flexDirection: 'column' }}>
 
@@ -136,13 +150,14 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
           borderRight: '1px solid rgba(201,169,97,0.1)',
           padding: '1.5rem 0', display: 'none',
           position: 'sticky', top: '57px', height: 'calc(100vh - 57px)', overflowY: 'auto',
+          flexDirection: 'column',
         }} className="tkc-sidebar">
           <div style={{ padding: '0 1.25rem', marginBottom: '1rem' }}>
             <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '0.875rem', fontWeight: 700, color: '#FEF7E6', lineHeight: 1.3 }}>
               {course.title}
             </div>
           </div>
-          <nav>
+          <nav style={{ flex: 1 }}>
             {chapters.map((ch, idx) => {
               const isActive = ch.id === chapter.id
               const isRead = chaptersRead.has(ch.id)
@@ -176,14 +191,28 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
               )
             })}
           </nav>
+
+          {/* Layer 2: Sidebar CTA card — desktop only, from ch ≥ 2 */}
+          {showUpsell && <KQUpsellSidebarCard />}
         </aside>
 
         {/* Main content */}
-        <main style={{ flex: 1, padding: '2.5rem 1.5rem', minWidth: 0 }}>
+        <main style={{ flex: 1, padding: '2.5rem 1.5rem', minWidth: 0, paddingBottom: showUpsell ? '7rem' : '2.5rem' }}>
           <div style={{ maxWidth: '680px', margin: '0 auto' }}>
 
             {/* Chapter content */}
             <article className="tkc-content" dangerouslySetInnerHTML={{ __html: chapter.contentHtml }} />
+
+            {/* Layer 3: Inline CTA at peak moments (idx 2, 4, 7) */}
+            {showUpsell && currentIdx === 2 && (
+              <KQUpsellInlineCard variant="after-framework" />
+            )}
+            {showUpsell && currentIdx === 4 && (
+              <KQUpsellInlineCard variant="mid-journey" />
+            )}
+            {showUpsell && currentIdx === 7 && (
+              <KQUpsellInlineCard variant="final-peak" />
+            )}
 
             {/* Chapter navigation */}
             <nav style={{ marginTop: '3rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(201,169,97,0.15)', display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
@@ -270,9 +299,12 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
         )}
       </div>
 
+      {/* Layer 1: Sticky bottom upsell bar */}
+      {showUpsell && <KQUpsellStickyBar chapterIndex={currentIdx} />}
+
       <style>{`
         @media (min-width: 768px) {
-          .tkc-sidebar { display: block !important; }
+          .tkc-sidebar { display: flex !important; flex-direction: column; }
           .tkc-mobile-nav { display: none !important; }
         }
       `}</style>
