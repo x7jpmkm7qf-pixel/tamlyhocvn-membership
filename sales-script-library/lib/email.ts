@@ -451,6 +451,97 @@ Có câu hỏi nhắn Zalo: 0961 588 227 — Hán Văn Sơn
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// WELCOME EMAIL — Gửi ngay sau khi tạo tài khoản mua Khẩu Quyết (auto-gen password)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export async function sendKhauQuyetWelcome(opts: {
+  to: string
+  name: string
+  password: string
+}): Promise<{ ok: boolean; error?: string }> {
+  const firstName = getFirstName(opts.name)
+  const loginUrl = `${APP_URL}/tang-kinh-cac/login`
+
+  const html = `<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#091b30;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#FEF7E6;">
+  <div style="max-width:560px;margin:0 auto;padding:32px 16px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:32px;line-height:1;margin-bottom:8px;">⚜</div>
+      <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:700;color:#C9A961;letter-spacing:2px;">TÀNG KINH CÁC</div>
+      <div style="font-size:11px;letter-spacing:3px;color:#a09070;margin-top:2px;">— tamlyhocvn.club —</div>
+    </div>
+
+    <div style="background:#0f2744;border:1px solid rgba(201,169,97,0.3);border-radius:12px;padding:28px;border-top:4px solid #C9A961;">
+      <h1 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:700;margin:0 0 14px;color:#FEF7E6;">
+        Chào ${escapeHtml(firstName)} sư huynh!
+      </h1>
+
+      <p style="font-size:14.5px;line-height:1.7;color:#e8dcc8;margin:0 0 18px;">
+        Tài khoản <strong>Tàng Kinh Các</strong> của sư huynh đã được tạo. Sư huynh chỉ cần hoàn tất chuyển khoản để nhận <strong>Khẩu Quyết Phá Phản Đối</strong>.
+      </p>
+
+      <div style="background:#040e1c;border:1px solid rgba(201,169,97,0.2);border-radius:8px;padding:18px;margin:20px 0;">
+        <div style="font-size:11px;letter-spacing:2px;color:#C9A961;font-weight:700;text-transform:uppercase;margin-bottom:12px;">🔑 Thông tin đăng nhập</div>
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr><td style="padding:5px 0;color:#a09070;width:90px;">Email:</td><td style="padding:5px 0;color:#FEF7E6;font-weight:600;">${escapeHtml(opts.to)}</td></tr>
+          <tr><td style="padding:5px 0;color:#a09070;">Mật khẩu:</td><td style="padding:5px 0;color:#C9A961;font-weight:700;font-family:monospace;font-size:15px;">${escapeHtml(opts.password)}</td></tr>
+        </table>
+        <div style="font-size:12px;color:#a09070;margin-top:10px;">
+          ⚠️ Lưu lại mật khẩu này. Sư huynh có thể đổi sau khi đăng nhập.
+        </div>
+      </div>
+
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${loginUrl}" style="display:inline-block;background:#C9A961;color:#040e1c;text-decoration:none;font-weight:700;padding:13px 32px;border-radius:8px;font-size:14px;">
+          ⚜ Đăng nhập Tàng Kinh Các →
+        </a>
+      </div>
+
+      <hr style="border:none;border-top:1px solid rgba(201,169,97,0.15);margin:24px 0;">
+
+      <p style="font-size:13px;line-height:1.7;color:#a09070;margin:0;">
+        Sau khi chuyển khoản, hệ thống tự động kích hoạt trong vòng 30 giây.<br>
+        Em gửi email riêng kèm tài liệu PDF ngay khi nhận được tiền.<br><br>
+        Có câu hỏi nhắn Zalo: <strong style="color:#C9A961;">0961 588 227 — Hán Văn Sơn</strong>
+      </p>
+    </div>
+
+    <p style="text-align:center;font-size:11px;color:#a09070;margin-top:20px;font-style:italic;font-family:'Cormorant Garamond',Georgia,serif;">
+      "Khách không phản đối vì giá. Khách phản đối vì chưa thấy đường ra."<br>
+      <span style="font-size:10px;letter-spacing:1px;">— TÀNG KINH CÁC —</span>
+    </p>
+  </div>
+</body>
+</html>`
+
+  const text = `⚜ TÀNG KINH CÁC — tamlyhocvn.club
+
+Chào ${firstName} sư huynh!
+
+Tài khoản Tàng Kinh Các của sư huynh đã được tạo.
+
+🔑 Thông tin đăng nhập:
+- Email: ${opts.to}
+- Mật khẩu: ${opts.password}
+
+Đăng nhập tại: ${loginUrl}
+
+Sau khi chuyển khoản, hệ thống tự động kích hoạt trong vòng 30 giây. Em gửi email kèm PDF ngay khi nhận tiền.
+
+Có câu hỏi nhắn Zalo: 0961 588 227 — Hán Văn Sơn
+— Tàng Kinh Các (tamlyhocvn.club)`
+
+  return sendEmail({
+    to: opts.to,
+    subject: `[Tàng Kinh Các] Tài khoản đã tạo — Mật khẩu của ${firstName} sư huynh`,
+    html,
+    text,
+  })
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // AUTO DELIVERY — Bộ Khẩu Quyết Toàn Tập (sau khi thanh toán 99k)
 // ═══════════════════════════════════════════════════════════════════════════
 

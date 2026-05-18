@@ -16,13 +16,9 @@ export default async function CourseIndexPage({ params }: { params: { slug: stri
 
   let enrollment = await getEnrollment(session.id, course.id)
 
-  // Auto-enroll on first visit (free course)
-  if (!enrollment && course.price === 0) {
-    enrollment = await enrollUser(session.id, course.id)
-  }
-
+  // Auto-enroll on first visit (all courses — paywall is enforced at chapter level)
   if (!enrollment) {
-    redirect('/tang-kinh-cac/dashboard')
+    enrollment = await enrollUser(session.id, course.id)
   }
 
   // Redirect to last read chapter, or first chapter

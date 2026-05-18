@@ -1,20 +1,26 @@
 import Link from 'next/link'
 import { getMemberSession } from '@/lib/auth'
-import { getCourses } from '@/lib/courses'
-import { getUserEnrollments } from '@/lib/courses'
+import { getMember } from '@/lib/data'
+import { getCourses, getUserEnrollments } from '@/lib/courses'
 
 export const dynamic = 'force-dynamic'
 
 export default async function TKCDashboard() {
   const session = getMemberSession()!
-  const [courses, enrollments] = await Promise.all([
+  const [courses, enrollments, member] = await Promise.all([
     getCourses(),
     getUserEnrollments(session.id),
+    getMember(session.email),
   ])
 
+  const kqPaymentActive = member?.enrollments?.['khau-quyet']?.status === 'active'
+
   const enrolledCourseIds = new Set(enrollments.map(e => e.courseId))
+  // Show KQ course if paid but not yet TKC-enrolled (first-time buyer)
+  if (kqPaymentActive) enrolledCourseIds.add('khau-quyet')
+
   const enrolledCourses = courses.filter(c => enrolledCourseIds.has(c.id))
-  const getEnrollment = (courseId: string) => enrollments.find(e => e.courseId === courseId)
+  const getTkcEnrollment = (courseId: string) => enrollments.find(e => e.courseId === courseId)
 
   return (
     <div className="min-h-screen" style={{ background: '#091b30' }}>
@@ -73,7 +79,7 @@ export default async function TKCDashboard() {
             </h2>
             <div className="grid gap-4 md:grid-cols-2">
               {enrolledCourses.map(course => {
-                const enrollment = getEnrollment(course.id)
+                const enrollment = getTkcEnrollment(course.id)
                 const progress = enrollment?.progressPercent ?? 0
                 const lastChapter = enrollment?.lastReadChapterId
 
@@ -177,6 +183,46 @@ export default async function TKCDashboard() {
               Nhận miễn phí →
             </Link>
           </div>
+        )}
+
+        {/* Upsell: Khẩu Quyết — only show if not yet purchased */}
+        {!kqPaymentActive && (
+          <section className="mb-10">
+            <h2 style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#C9A961', marginBottom: '1.25rem' }}>
+              Bí Kíp Tiếp Theo
+            </h2>
+            <Link
+              href="/tang-kinh-cac/checkout"
+              style={{ textDecoration: 'none', display: 'block' }}
+            >
+              <div
+                className="tkc-hover-card"
+                style={{
+                  background: 'linear-gradient(135deg, #0f2744 0%, #1a3855 100%)',
+                  border: '1px solid rgba(201,169,97,0.35)',
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1.25rem',
+                  flexWrap: 'wrap',
+                }}
+              >
+                <div style={{ fontSize: '2rem' }}>📜</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.125rem', fontWeight: 700, color: '#FEF7E6', marginBottom: '0.25rem' }}>
+                    Khẩu Quyết Phá Phản Đối
+                  </div>
+                  <div style={{ fontSize: '0.8125rem', color: '#a09070', lineHeight: 1.6 }}>
+                    10 câu trả lời chuẩn cho 10 phản đối phổ biến nhất — từ "Đắt quá" đến "Để nghĩ thêm". Bước kế tiếp sau Bản Đồ.
+                  </div>
+                </div>
+                <div style={{ flexShrink: 0, background: '#C9A961', color: '#040e1c', fontWeight: 700, fontSize: '0.875rem', padding: '0.625rem 1.25rem', borderRadius: '0.5rem', whiteSpace: 'nowrap' }}>
+                  Mua 199.000đ →
+                </div>
+              </div>
+            </Link>
+          </section>
         )}
 
         {/* Footer nav */}

@@ -75,6 +75,7 @@ function PaymentContent() {
     : '/dashboard'
 
   const product = from === 'khau-quyet' ? PRODUCTS['khau-quyet'] : PRODUCTS.default
+  const productSlug = from === 'khau-quyet' ? 'khau-quyet' : null
 
   // Normalize email: bỏ @ và . để MB Bank không strip mất ký tự
   // VD: "dolphin@gmail.com" → "dolphingmailcom"
@@ -93,7 +94,7 @@ function PaymentContent() {
   }, [qrUrl, email])
 
   // ── Polling state ──────────────────────────────────────
-  const [paymentStatus, setPaymentStatus] = useState<'waiting' | 'success' | 'error'>('waiting')
+  const [paymentStatus, setPaymentStatus] = useState<'waiting' | 'success' | 'already_owned' | 'error'>('waiting')
   const [countdown, setCountdown]         = useState(3)
   const [pollCount, setPollCount]         = useState(0)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -105,10 +106,10 @@ function PaymentContent() {
     const poll = async () => {
       try {
         setPollCount(c => c + 1)
-        const res  = await fetch(`/api/auth/check-status?email=${encodeURIComponent(email)}&expectedAmount=${product.amount}&prefix=${product.transferPrefix}&t=${Date.now()}`, { cache: 'no-store' })
+        const res  = await fetch(`/api/auth/check-status?email=${encodeURIComponent(email)}&expectedAmount=${product.amount}&prefix=${product.transferPrefix}${productSlug ? `&product=${productSlug}` : ''}&t=${Date.now()}`, { cache: 'no-store' })
         const data = await res.json()
         if (data.status === 'active') {
-          setPaymentStatus('success')
+          setPaymentStatus(data.alreadyOwned ? 'already_owned' : 'success')
           // Set flag để /cam-on detect tier="khauquyet"
           try { localStorage.setItem('khauquyet_order_id', email) } catch {}
           if (intervalRef.current) clearInterval(intervalRef.current)
@@ -144,6 +145,34 @@ function PaymentContent() {
       document.removeEventListener('visibilitychange', onVisible)
     }
   }, [email, router, successRedirect])
+
+  // ── Already owned overlay ──────────────────────────────
+  if (paymentStatus === 'already_owned') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-12">
+        <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-sm shadow-sm overflow-hidden text-center">
+          <div className="bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-10">
+            <div className="text-7xl mb-4">📜</div>
+            <h1 className="text-2xl font-black text-white mb-1">Bạn đã sở hữu rồi!</h1>
+            <p className="text-amber-100 text-sm">Sản phẩm này đã được kích hoạt trong tài khoản của {name || 'anh/chị'}</p>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <p className="text-sm text-amber-800 leading-relaxed">
+                ✅ <strong>{product.productName}</strong> đã được kích hoạt. Kiểm tra email để nhận tài liệu hoặc đăng nhập để truy cập.
+              </p>
+            </div>
+            <Link href={successRedirect} className="block w-full bg-amber-500 hover:bg-amber-400 text-stone-900 font-bold py-3 rounded-xl transition shadow-md text-sm">
+              Đi đến sản phẩm →
+            </Link>
+            <Link href="/tang-kinh-cac/dashboard" className="block w-full text-center text-slate-500 text-sm hover:text-slate-700 transition">
+              Về Tàng Kinh Các →
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // ── Success overlay ────────────────────────────────────
   if (paymentStatus === 'success') {

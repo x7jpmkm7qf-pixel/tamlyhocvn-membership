@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getMember, saveMember } from '@/lib/data'
+import { getMember, saveMember, Member } from '@/lib/data'
 import { notifyPaymentConfirmed } from '@/lib/telegram'
 import { setMemberCookie, MEMBER_COOKIE_NAME } from '@/lib/auth'
 import { sendKhauQuyetDelivery } from '@/lib/email'
@@ -108,6 +108,61 @@ export async function GET(req: NextRequest) {
   if (!member) {
     return NextResponse.json({ status: 'not_found' }, { headers: { 'Cache-Control': 'no-store' } })
   }
+
+  // ── Per-product check (new flow) — only when caller passes ?product= ─────
+  const product = req.nextUrl.searchParams.get('product')
+  if (product) {
+    const enrollment = member.enrollments?.[product]
+
+    // Already owns this specific product — return active but flag it
+    if (enrollment?.status === 'active') {
+      return responseWithSession(member, { status: 'active', name: member.name, alreadyOwned: true })
+    }
+
+    // Not yet active for this product → verify with SePay
+    const tx = await checkSePayForEmail(member.email, safeRequiredAmount, member.createdAt, prefix)
+    if (tx.found && tx.amount) {
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      const activated: Member = {
+        ...member,
+        status: 'active' as const,
+        tier: (member.tier || 'ngoaimon') as 'ngoaimon' | 'noimon',
+        expiresAt,
+        lastReferenceCode: tx.referenceCode,
+        enrollments: {
+          ...member.enrollments,
+          [product]: {
+            status: 'active' as const,
+            enrolledAt: enrollment?.enrolledAt || new Date().toISOString(),
+            source: 'paid' as const,
+            activatedAt: new Date().toISOString(),
+            referenceCode: tx.referenceCode,
+          },
+        },
+      }
+      await saveMember(activated)
+      console.log('[check-status] ✅ Product activation:', member.email, product)
+
+      notifyPaymentConfirmed({
+        name: member.name, email: member.email,
+        amount: tx.amount, transferContent: tx.rawContent || '', referenceCode: tx.referenceCode,
+      }).catch(e => console.error('[check-status] Telegram lỗi:', e))
+
+      if (product === 'khau-quyet') {
+        sendKhauQuyetDelivery({ to: member.email, name: member.name })
+          .then(r => { if (r.ok) console.log('[check-status] 📜 PDF Khẩu Quyết sent:', member.email) })
+          .catch(e => console.error('[check-status] KQ delivery failed:', e))
+      }
+
+      return responseWithSession(activated, { status: 'active', name: member.name })
+    }
+
+    return NextResponse.json(
+      { status: 'pending' },
+      { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
+    )
+  }
+  // ── Old account-level check (backward compat — no ?product= param) ────────
 
   // ── Đã active → set cookie + trả về active ────────────────
   if (member.status === 'active') {

@@ -24,6 +24,7 @@ export interface CourseContent {
   audioUrl?: string
   videoUrl?: string
   orderIndex: number
+  preview?: boolean
 }
 
 export interface Enrollment {

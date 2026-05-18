@@ -166,6 +166,10 @@ export async function POST(req: NextRequest) {
     const MONTH_MS    = 30 * 24 * 60 * 60 * 1000
     const expiresAt = new Date(Date.now() + (isNoiMon ? LIFETIME_MS : MONTH_MS)).toISOString()
 
+    const productSlug = action === 'ngoaimon-activate' ? 'khau-quyet'
+                    : (action === 'noimon-direct' || action === 'noimon-upgrade') ? 'noi-mon'
+                    : null
+
     const updated = {
       ...member,
       status: 'active' as const,
@@ -174,6 +178,18 @@ export async function POST(req: NextRequest) {
         ? { tier: 'noimon' as const, upgradedAt: new Date().toISOString(), upgradeReferenceCode: payload.referenceCode }
         : { tier: 'ngoaimon' as const, lastReferenceCode: payload.referenceCode }
       ),
+      ...(productSlug ? {
+        enrollments: {
+          ...member.enrollments,
+          [productSlug]: {
+            status: 'active' as const,
+            enrolledAt: member.enrollments?.[productSlug]?.enrolledAt || new Date().toISOString(),
+            source: 'paid' as const,
+            activatedAt: new Date().toISOString(),
+            referenceCode: payload.referenceCode,
+          },
+        },
+      } : {}),
     }
     await saveMember(updated)
     const actionLabel = action === 'noimon-direct' ? 'Kích hoạt Nội Môn trọn gói'

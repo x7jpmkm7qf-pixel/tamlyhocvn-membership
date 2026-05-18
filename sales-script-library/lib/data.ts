@@ -13,6 +13,14 @@ export interface Script {
   createdAt: string
 }
 
+export interface ProductEnrollment {
+  status: 'pending' | 'active'
+  enrolledAt: string
+  source?: 'free' | 'paid'
+  activatedAt?: string
+  referenceCode?: string
+}
+
 export interface Member {
   id: string
   name: string
@@ -41,6 +49,8 @@ export interface Member {
   // - 'membership': mua trên /register (99k/tháng, truy cập library kịch bản)
   // - undefined: legacy members (treat as 'membership' để không break access cũ)
   product?: 'khauquyet' | 'membership'
+  // Per-product enrollment tracking (added 2026-05-17)
+  enrollments?: Record<string, ProductEnrollment>
 }
 
 // ── File-based storage (read-only, for static content) ─────────────────────

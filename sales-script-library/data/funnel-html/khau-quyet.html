@@ -764,6 +764,23 @@
         </div>
         <p class="text-center text-xs text-stone-500 mb-6">⚡ Kích hoạt tự động · 🛡️ Bảo Tín Thất Nhật — hoàn tiền 7 ngày</p>
 
+        <!-- Modal: email đã tồn tại -->
+        <div id="kq-email-exists-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;align-items:center;justify-content:center;padding:1rem;">
+          <div style="background:#fff;border-radius:1rem;padding:2rem;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+            <div style="font-size:2.5rem;margin-bottom:0.75rem;">🔑</div>
+            <h3 style="font-size:1.125rem;font-weight:700;color:#1c1917;margin:0 0 0.5rem;">Email này đã có tài khoản</h3>
+            <p style="font-size:0.875rem;color:#57534e;margin:0 0 1.5rem;line-height:1.6;">
+              Sư huynh vui lòng đăng nhập để tiếp tục mua Khẩu Quyết. Thông tin mua hàng sẽ được giữ nguyên.
+            </p>
+            <a id="kq-modal-login-btn" href="/tang-kinh-cac/login" style="display:block;background:#7C2D12;color:#FEF7E6;font-weight:700;padding:0.75rem 1.5rem;border-radius:0.5rem;text-decoration:none;margin-bottom:0.75rem;font-size:0.9375rem;">
+              Đăng nhập →
+            </a>
+            <button id="kq-modal-close-btn" style="background:none;border:none;font-size:0.875rem;color:#78716c;cursor:pointer;padding:0.5rem;">
+              Tiếp tục bằng email khác
+            </button>
+          </div>
+        </div>
+
         <form id="kq-register-form" class="space-y-4" novalidate>
           <div>
             <label class="block text-xs font-bold text-stone-700 uppercase tracking-wide mb-1.5">
@@ -794,19 +811,6 @@
             >
           </div>
 
-          <div>
-            <label class="block text-xs font-bold text-stone-700 uppercase tracking-wide mb-1.5">
-              Số điện thoại <span class="text-stone-400 normal-case font-normal">(để hỗ trợ qua Zalo)</span>
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              autocomplete="tel"
-              placeholder="09xx xxx xxx"
-              class="w-full bg-white border border-stone-300 focus:border-seal focus:ring-2 focus:ring-seal/20 rounded-md px-4 py-2.5 text-sm outline-none transition"
-            >
-          </div>
-
           <div id="kq-form-error" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-md"></div>
 
           <button
@@ -819,14 +823,14 @@
 
           <p class="text-center text-xs text-stone-500 leading-relaxed">
             Quét QR bằng app ngân hàng — chuyển 199k — <strong class="text-seal">kích hoạt trong 30 giây</strong>.<br>
-            Em gửi email tạo mật khẩu ngay sau khi nhận thanh toán.
+            Em gửi email kèm mật khẩu ngay sau khi tạo tài khoản.
           </p>
         </form>
 
         <div class="mt-6 pt-6 border-t border-stone-200 text-center">
           <p class="text-xs text-stone-500">
             Đã có tài khoản?
-            <a href="/login" class="text-seal font-semibold hover:underline">Đăng nhập Tàng Kinh Các →</a>
+            <a href="/tang-kinh-cac/login?from=/tang-kinh-cac/checkout" class="text-seal font-semibold hover:underline">Đăng nhập Tàng Kinh Các →</a>
           </p>
         </div>
       </div>
@@ -895,7 +899,27 @@
       setTimeout(hideLoader, 2000);
     }
 
-    // ============ FORM SUBMIT — Register + redirect to /register/payment ============
+    // ============ MODAL — Email đã tồn tại ============
+    const kqModal = document.getElementById('kq-email-exists-modal');
+    const kqModalLoginBtn = document.getElementById('kq-modal-login-btn');
+    const kqModalCloseBtn = document.getElementById('kq-modal-close-btn');
+
+    function showModal(email) {
+      if (!kqModal) return;
+      // Update login URL with redirect back to checkout page (user will be logged in → checkout)
+      if (kqModalLoginBtn) {
+        kqModalLoginBtn.href = '/tang-kinh-cac/login?from=/tang-kinh-cac/checkout';
+      }
+      kqModal.style.display = 'flex';
+    }
+    function hideModal() {
+      if (!kqModal) return;
+      kqModal.style.display = 'none';
+    }
+    if (kqModalCloseBtn) kqModalCloseBtn.addEventListener('click', hideModal);
+    if (kqModal) kqModal.addEventListener('click', (e) => { if (e.target === kqModal) hideModal(); });
+
+    // ============ FORM SUBMIT — Checkout via /api/khau-quyet/checkout ============
     const kqForm = document.getElementById('kq-register-form');
     const kqError = document.getElementById('kq-form-error');
     const kqBtn = document.getElementById('kq-submit-btn');
@@ -917,62 +941,49 @@
         clearError();
 
         const fd = new FormData(kqForm);
-        const name = (fd.get('name') || '').toString().trim();
+        const name  = (fd.get('name')  || '').toString().trim();
         const email = (fd.get('email') || '').toString().trim().toLowerCase();
-        const phone = (fd.get('phone') || '').toString().trim();
 
-        if (!name) { showError('Vui lòng nhập họ tên'); return; }
+        if (!name)  { showError('Vui lòng nhập họ tên'); return; }
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           showError('Email không hợp lệ. Vui lòng kiểm tra lại.'); return;
         }
 
-        // Generate temporary password client-side — user will set their real password via
-        // post-payment email link. Backend /api/auth/register still requires a password field.
-        // TODO: switch to set-password-via-email flow once backend endpoint exists.
-        const tempPassword = (typeof crypto !== 'undefined' && crypto.randomUUID)
-          ? crypto.randomUUID().replace(/-/g, '').slice(0, 16)
-          : (Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)).slice(0, 16);
-
         kqBtn.disabled = true;
         const originalText = kqBtn.textContent;
-        kqBtn.textContent = '⏳ Đang tạo mã QR...';
+        kqBtn.textContent = '⏳ Đang tạo tài khoản...';
 
         try {
-          const res = await fetch('/api/auth/register', {
+          const res = await fetch('/api/khau-quyet/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, phone, password: tempPassword, product: 'khauquyet' }),
+            body: JSON.stringify({ name, email }),
           });
           const data = await res.json();
 
+          if (res.status === 409 && data.emailExists) {
+            // Email already has an account — show friendly modal
+            showModal(email);
+            kqBtn.disabled = false;
+            kqBtn.textContent = originalText;
+            return;
+          }
+
           if (!res.ok) {
-            // Email already exists → guide them to login or use payment page directly
-            if (data.error && data.error.includes('đã được đăng ký')) {
-              showError('Email này đã đăng ký trước đó. Anh/chị vui lòng đăng nhập, hoặc dùng email khác.');
-              kqBtn.disabled = false;
-              kqBtn.textContent = originalText;
-              return;
-            }
             showError(data.error || 'Có lỗi xảy ra. Vui lòng thử lại.');
             kqBtn.disabled = false;
             kqBtn.textContent = originalText;
             return;
           }
 
-          // Mark this lead came from /khau-quyet so upsell flow knows
-          // Also save email so /khau-quyet/nang-cap (upsell) can pre-fill QR
+          // Save for upsell tracking
           try {
             localStorage.setItem('kq_from', 'khau-quyet');
             localStorage.setItem('kq_email', email);
-          } catch (e) {}
+          } catch (_) {}
 
-          // Redirect to existing payment page with from=khau-quyet (so success → upsell)
-          const params = new URLSearchParams({
-            email: email,
-            name: name,
-            from: 'khau-quyet',
-          });
-          window.location.href = '/register/payment?' + params.toString();
+          // Auto-logged in — go directly to TKC checkout (QR page, no form)
+          window.location.href = '/tang-kinh-cac/checkout';
         } catch (err) {
           showError('Lỗi kết nối. Vui lòng kiểm tra mạng và thử lại.');
           kqBtn.disabled = false;

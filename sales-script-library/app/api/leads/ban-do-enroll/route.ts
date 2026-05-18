@@ -95,6 +95,19 @@ export async function POST(req: NextRequest) {
 
     // Enroll existing member
     await enrollUser(existing.id, course.id)
+    // Track ban-do enrollment in member record
+    await saveMember({
+      ...existing,
+      enrollments: {
+        ...existing.enrollments,
+        'ban-do': existing.enrollments?.['ban-do'] || {
+          status: 'active',
+          enrolledAt: new Date().toISOString(),
+          source: 'free',
+          activatedAt: new Date().toISOString(),
+        },
+      },
+    })
     const session = { id: existing.id, name: existing.name, email: existing.email }
     const encoded = setMemberCookie(session)
     const res = NextResponse.json({ ok: true, redirectTo: `${READER_URL}?welcome=true` })
@@ -113,6 +126,14 @@ export async function POST(req: NextRequest) {
     password: await hashPassword(password),
     status: 'active',
     createdAt: new Date().toISOString(),
+    enrollments: {
+      'ban-do': {
+        status: 'active',
+        enrolledAt: new Date().toISOString(),
+        source: 'free',
+        activatedAt: new Date().toISOString(),
+      },
+    },
   }
 
   await saveMember(member)

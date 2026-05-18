@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getMemberSession } from '@/lib/auth'
-import { getCourseBySlug, getCourseContent, getEnrollment, markChapterRead } from '@/lib/courses'
+import { getMember } from '@/lib/data'
+import { getCourseBySlug, getCourseContent, getEnrollment, enrollUser, markChapterRead } from '@/lib/courses'
 import TKCWelcomeDialog from '@/components/TKCWelcomeDialog'
 import '@/styles/tang-kinh-cac.css'
 
@@ -24,10 +25,66 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
   const chapter = chapters.find(c => c.id === params.chapter)
   if (!chapter) notFound()
 
-  const enrollment = await getEnrollment(session.id, course.id)
-  if (!enrollment) notFound()
+  let enrollment = await getEnrollment(session.id, course.id)
+  if (!enrollment) {
+    enrollment = await enrollUser(session.id, course.id)
+  }
 
-  // Mark chapter as read
+  // Paywall: paid chapter on a paid course requires active payment enrollment
+  const isPaidChapter = course.price > 0 && chapter.preview === false
+  if (isPaidChapter) {
+    const member = await getMember(session.email)
+    const paymentEnrollment = member?.enrollments?.[course.id]
+    if (paymentEnrollment?.status !== 'active') {
+      // Show paywall — teaser of title + lock UI
+      return (
+        <div style={{ minHeight: '100vh', background: '#091b30', display: 'flex', flexDirection: 'column' }}>
+          <header style={{ background: '#040e1c', borderBottom: '1px solid rgba(201,169,97,0.15)' }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Link href="/tang-kinh-cac/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+                <span style={{ color: '#C9A961' }}>⚜</span>
+                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1rem', fontWeight: 700, color: '#FEF7E6' }}>Tàng Kinh Các</span>
+              </Link>
+            </div>
+          </header>
+          <main style={{ flex: 1, padding: '2.5rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ maxWidth: '480px', width: '100%', textAlign: 'center' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
+              <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.5rem', fontWeight: 700, color: '#FEF7E6', marginBottom: '0.5rem' }}>
+                {chapter.chapterTitle}
+              </h1>
+              <p style={{ color: '#a09070', marginBottom: '2rem', lineHeight: 1.6 }}>
+                Chương này chỉ dành cho đệ tử đã sở hữu <strong style={{ color: '#FEF7E6' }}>Khẩu Quyết Phá Phản Đối</strong>.
+              </p>
+              <div style={{ background: '#0f2744', border: '1px solid rgba(201,169,97,0.25)', borderRadius: '0.875rem', padding: '1.5rem', marginBottom: '1.5rem' }}>
+                <div style={{ fontSize: '0.75rem', color: '#a09070', marginBottom: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Bộ toàn tập bao gồm</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left', marginBottom: '1.25rem' }}>
+                  {['10 khẩu quyết phá 10 phản đối kinh điển', 'Framework L–H–Đ–Q + 3 câu hỏi vàng', 'Script thực chiến — copy dùng được ngay', 'Cheatsheet 1 trang dán bàn làm việc'].map(item => (
+                    <div key={item} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                      <span style={{ color: '#C9A961', flexShrink: 0, marginTop: '0.1rem' }}>✓</span>
+                      <span style={{ fontSize: '0.875rem', color: '#e8dcc8' }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
+                <Link
+                  href="/tang-kinh-cac/checkout"
+                  style={{ display: 'block', background: '#C9A961', color: '#040e1c', fontWeight: 700, fontSize: '1rem', padding: '0.875rem 1.5rem', borderRadius: '0.5rem', textDecoration: 'none', textAlign: 'center' }}
+                >
+                  Mua ngay 199.000đ →
+                </Link>
+              </div>
+              <Link href={`/tang-kinh-cac/khoa-hoc/${params.slug}/kq-ch-00`}
+                style={{ fontSize: '0.8125rem', color: '#a09070', textDecoration: 'none' }}>
+                ← Đọc lời tựa miễn phí
+              </Link>
+            </div>
+          </main>
+        </div>
+      )
+    }
+  }
+
+  // Mark chapter as read (only for accessible chapters)
   await markChapterRead(session.id, course.id, chapter.id, chapters.length)
 
   const currentIdx = chapters.findIndex(c => c.id === chapter.id)

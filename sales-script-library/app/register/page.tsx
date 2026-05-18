@@ -1,13 +1,35 @@
 'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const from = searchParams.get('from') || ''
+
+  const [checkingAuth, setCheckingAuth] = useState(true)
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // If user is already logged in, skip registration and go directly to payment
+  useEffect(() => {
+    fetch('/api/auth/me', { cache: 'no-store' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.member) {
+          const params = new URLSearchParams()
+          params.set('email', data.member.email)
+          params.set('name', data.member.name)
+          if (from) params.set('from', from)
+          router.replace(`/register/payment?${params.toString()}`)
+        } else {
+          setCheckingAuth(false)
+        }
+      })
+      .catch(() => setCheckingAuth(false))
+  }, [router, from])
 
   const update = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(prev => ({ ...prev, [k]: e.target.value }))
@@ -31,11 +53,22 @@ export default function RegisterPage() {
       const data = await res.json()
       if (!res.ok) { setError(data.error); return }
 
-      // Redirect to payment page with email
-      router.push(`/register/payment?email=${encodeURIComponent(form.email)}&name=${encodeURIComponent(form.name)}`)
+      const params = new URLSearchParams()
+      params.set('email', form.email)
+      params.set('name', form.name)
+      if (from) params.set('from', from)
+      router.push(`/register/payment?${params.toString()}`)
     } finally {
       setLoading(false)
     }
+  }
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -148,7 +181,10 @@ export default function RegisterPage() {
         <div className="mt-5 pt-5 border-t border-slate-100 text-center space-y-2">
           <p className="text-xs text-slate-500">
             Đã có tài khoản?{' '}
-            <Link href="/login" className="text-violet-600 font-semibold hover:underline">
+            <Link
+              href={`/tang-kinh-cac/login?from=/register/payment?from=${from}`}
+              className="text-violet-600 font-semibold hover:underline"
+            >
               Đăng nhập
             </Link>
           </p>
@@ -168,5 +204,17 @@ export default function RegisterPage() {
         <span>⚡ Kích hoạt &lt;4h</span>
       </div>
     </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   )
 }
