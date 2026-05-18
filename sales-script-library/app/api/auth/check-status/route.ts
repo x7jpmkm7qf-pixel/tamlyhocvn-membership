@@ -120,7 +120,10 @@ export async function GET(req: NextRequest) {
     }
 
     // Not yet active for this product → verify with SePay
-    const tx = await checkSePayForEmail(member.email, safeRequiredAmount, member.createdAt, prefix)
+    // Use enrolledAt (checkout session start) as cutoff, NOT createdAt (account creation).
+    // This prevents old test transactions from matching a new checkout session.
+    const checkoutStartedAt = enrollment?.enrolledAt || member.createdAt
+    const tx = await checkSePayForEmail(member.email, safeRequiredAmount, checkoutStartedAt, prefix)
     if (tx.found && tx.amount) {
       const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
       const activated: Member = {

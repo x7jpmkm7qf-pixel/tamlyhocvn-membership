@@ -20,8 +20,9 @@ export default async function TKCCheckoutPage() {
     redirect('/tang-kinh-cac/dashboard')
   }
 
-  // Create pending enrollment if this is the first visit
-  if (!kqEnrollment) {
+  // Always refresh enrolledAt = now so check-status only matches transactions
+  // that happened during THIS checkout session (not old test transactions).
+  if (!kqEnrollment || kqEnrollment.status === 'pending') {
     await saveMember({
       ...member,
       enrollments: {
