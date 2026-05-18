@@ -8,6 +8,7 @@ const BANK = {
   account: process.env.NEXT_PUBLIC_BANK_ACCOUNT || '',
   name:    process.env.NEXT_PUBLIC_BANK_NAME    || 'HAN VAN SON',
 }
+const BANK_CONFIGURED = BANK.account.length > 0
 
 const AMOUNT = 199000
 const AMOUNT_LABEL = '199.000đ'
@@ -136,7 +137,12 @@ export default function TKCCheckoutClient({ email, name }: { email: string; name
           Quét QR bằng app ngân hàng bất kỳ
         </p>
         <div style={{ display: 'inline-block', borderRadius: '0.75rem', overflow: 'hidden', border: '2px solid rgba(201,169,97,0.4)', boxShadow: '0 0 24px rgba(201,169,97,0.15)' }}>
-          {qrLoaded ? (
+          {!BANK_CONFIGURED ? (
+            <div style={{ width: 220, height: 220, background: '#040e1c', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem' }}>
+              <div style={{ fontSize: '1.5rem' }}>🔧</div>
+              <div style={{ fontSize: '0.7rem', color: '#a09070', textAlign: 'center', lineHeight: 1.4 }}>QR khả dụng trên production</div>
+            </div>
+          ) : qrLoaded ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={qrUrl} alt="QR chuyển khoản" width={220} height={220} style={{ display: 'block' }} />
           ) : (
@@ -154,7 +160,7 @@ export default function TKCCheckoutClient({ email, name }: { email: string; name
         </div>
         {[
           { label: 'Ngân hàng',    value: 'MB Bank' },
-          { label: 'Số TK',        value: BANK.account },
+          { label: 'Số TK',        value: BANK.account || '—' },
           { label: 'Chủ TK',       value: BANK.name },
           { label: 'Số tiền',      value: AMOUNT_LABEL, gold: true },
           { label: 'Nội dung CK',  value: transferContent, gold: true },
