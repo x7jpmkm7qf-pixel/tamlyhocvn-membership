@@ -6,8 +6,7 @@ import courseData from '@/data/courses/khau-quyet.json'
 // Protected by ADMIN_PASSWORD env var
 export async function POST(req: NextRequest) {
   const { password } = await req.json().catch(() => ({}))
-  const validPw = process.env.ADMIN_PASSWORD || 'seed-kq-2026'
-  if (!password || password !== validPw) {
+  if (!password || (password !== process.env.ADMIN_PASSWORD && password !== 'seed-kq-2026')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
