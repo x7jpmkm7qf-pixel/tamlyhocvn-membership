@@ -5,6 +5,7 @@ import MetaPixel from '@/components/MetaPixel'
 import TikTokPixel from '@/components/TikTokPixel'
 import TangKinhCacBanner from '@/components/TangKinhCacBanner'
 import TangKinhCacModal from '@/components/TangKinhCacModal'
+import PHProvider from '@/components/PostHogProvider'
 
 export const metadata: Metadata = {
   title: 'Thư viện Kịch bản Sales',
@@ -17,10 +18,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen bg-slate-50">
         <MetaPixel />
         <TikTokPixel />
-        <TangKinhCacBanner />
-        {children}
-        <TangKinhCacModal />
-        <ChatWidget />
+        <PHProvider>
+          <TangKinhCacBanner />
+          {children}
+          <TangKinhCacModal />
+          <ChatWidget />
+        </PHProvider>
       </body>
     </html>
   )

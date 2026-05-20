@@ -6,6 +6,7 @@ import { LeadCounterHero, LeadCounterForm } from './LeadCounter'
 import PDFPreview from './PDFPreview'
 import ExitIntentModal from './ExitIntentModal'
 import TestimonialCard, { type Testimonial } from './TestimonialCard'
+import { useBanDoABTest } from './useABTest'
 
 const ARCHETYPES = [
   {
@@ -81,6 +82,7 @@ const FAQS = [
 ]
 
 export default function BanDoLandingPage() {
+  const { variant, trackSubmit } = useBanDoABTest()
   const [form, setForm] = useState({ name: '', email: '', phone: '', consent: false })
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
@@ -116,6 +118,7 @@ export default function BanDoLandingPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Lỗi không xác định')
+      trackSubmit()
       setSent(true)
       return
     } catch (err: unknown) {
@@ -183,8 +186,17 @@ export default function BanDoLandingPage() {
             className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-[#1C1917] leading-tight mb-6"
             style={{ fontFamily: '"Noto Serif", Georgia, serif' }}
           >
-            Bản Đồ 4 Loại Khách Hàng
-            <span className="block text-[#7C2D12] mt-2">Sales Việt</span>
+            {variant === 'treatment' ? (
+              <>
+                Sales Việt — 4 Loại Khách
+                <span className="block text-[#7C2D12] mt-2">+ Cách Chốt Đúng Cho Từng Loại</span>
+              </>
+            ) : (
+              <>
+                Bản Đồ 4 Loại Khách Hàng
+                <span className="block text-[#7C2D12] mt-2">Sales Việt</span>
+              </>
+            )}
           </h1>
 
           <p className="text-lg sm:text-xl text-stone-700 max-w-2xl mx-auto mb-4 font-medium">
@@ -522,7 +534,11 @@ export default function BanDoLandingPage() {
                   disabled={loading}
                   className="w-full bg-[#7C2D12] hover:bg-[#5C1A0A] disabled:opacity-60 text-[#FEF7E6] font-bold py-4 rounded-md transition text-base shadow-lg"
                 >
-                  {loading ? 'Đang xử lý...' : '🗝️ NHẬN BẢN ĐỒ VÀ ĐỌC NGAY'}
+                  {loading
+                    ? 'Đang xử lý...'
+                    : variant === 'treatment'
+                      ? '📥 TẢI BẢN ĐỒ — ĐỌC TRONG 30 PHÚT'
+                      : '🗝️ NHẬN BẢN ĐỒ VÀ ĐỌC NGAY'}
                 </button>
               </form>
 
