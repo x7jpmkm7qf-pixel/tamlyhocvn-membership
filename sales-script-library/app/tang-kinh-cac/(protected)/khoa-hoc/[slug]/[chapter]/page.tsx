@@ -133,7 +133,7 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
             </div>
           </div>
           <a
-            href={`/public/files/Ban-Do-4-Loai-Khach-Hang-Sales-Viet.pdf`}
+            href={`/files/Ban-Do-4-Loai-Khach-Hang-Sales-Viet.pdf`}
             download
             style={{ fontSize: '0.75rem', color: '#C9A961', textDecoration: 'none', fontWeight: 600, whiteSpace: 'nowrap' }}
           >

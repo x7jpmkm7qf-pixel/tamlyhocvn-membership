@@ -1,7 +1,6 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 const ARCHETYPES = [
   {
@@ -68,9 +67,9 @@ const FAQS = [
 ]
 
 export default function BanDoLandingPage() {
-  const router = useRouter()
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', consent: false })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', consent: false })
   const [loading, setLoading] = useState(false)
+  const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
   const [phoneError, setPhoneError] = useState('')
   const [consentError, setConsentError] = useState('')
@@ -81,12 +80,6 @@ export default function BanDoLandingPage() {
     setError('')
     setPhoneError('')
     setConsentError('')
-
-    if (form.password.length < 8) {
-      setError('Mật khẩu phải có ít nhất 8 ký tự')
-      setLoading(false)
-      return
-    }
 
     const phoneRegex = /^(0|\+84)[0-9]{9}$/
     if (!phoneRegex.test(form.phone.trim())) {
@@ -105,12 +98,12 @@ export default function BanDoLandingPage() {
       const res = await fetch('/api/leads/ban-do-enroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name, email: form.email, password: form.password, phone: form.phone.trim(), consent: form.consent }),
+        body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone.trim(), consent: form.consent }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Lỗi không xác định')
-      router.push(data.redirectTo || '/tang-kinh-cac/khoa-hoc/ban-do?welcome=true')
-      router.refresh()
+      setSent(true)
+      return
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Lỗi kết nối, thử lại nhé')
     } finally {
@@ -426,102 +419,103 @@ export default function BanDoLandingPage() {
       {/* ============ FORM (CTA chính) ============ */}
       <section id="cta-form" className="py-16 px-4 sm:px-6 scroll-mt-20">
         <div className="max-w-md mx-auto">
-          <div className="bg-white border-2 border-[#7C2D12] rounded-lg p-6 sm:p-8 shadow-xl">
-            <div className="text-center mb-6">
-              <div className="text-4xl mb-2">📩</div>
-              <h2
-                className="text-2xl font-extrabold text-[#7C2D12] mb-2"
-                style={{ fontFamily: '"Noto Serif", Georgia, serif' }}
-              >
-                Nhận Bản Đồ Ngay
+          {sent ? (
+            <div className="bg-white border-2 border-[#7C2D12] rounded-lg p-6 sm:p-8 shadow-xl text-center">
+              <div className="text-5xl mb-4">📩</div>
+              <h2 className="text-2xl font-extrabold text-[#7C2D12] mb-3" style={{ fontFamily: '"Noto Serif", Georgia, serif' }}>
+                Kiểm tra email ngay!
               </h2>
-              <p className="text-sm text-stone-600">
-                Em gửi PDF qua email trong vòng 60 giây
+              <p className="text-sm text-stone-700 leading-relaxed mb-4">
+                Em đã gửi link đọc Bản Đồ vào <strong>{form.email}</strong>. Bấm vào link trong email là vào ngay — không cần mật khẩu.
               </p>
+              <p className="text-xs text-stone-500">Không thấy email? Kiểm tra hộp thư Spam hoặc Promotions.</p>
             </div>
-
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <input
-                type="text"
-                required
-                placeholder="Họ và tên *"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full bg-[#FEF7E6] border border-[#C9A961] rounded-md px-4 py-3 text-sm text-[#1C1917] placeholder-stone-500 focus:outline-none focus:border-[#7C2D12] transition"
-              />
-              <input
-                type="email"
-                required
-                placeholder="Email của anh/chị *"
-                value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="w-full bg-[#FEF7E6] border border-[#C9A961] rounded-md px-4 py-3 text-sm text-[#1C1917] placeholder-stone-500 focus:outline-none focus:border-[#7C2D12] transition"
-              />
-              <div>
-                <input
-                  type="tel"
-                  required
-                  placeholder="Số điện thoại * (VD: 0901234567)"
-                  value={form.phone}
-                  onChange={(e) => { setForm((f) => ({ ...f, phone: e.target.value })); setPhoneError('') }}
-                  className={`w-full bg-[#FEF7E6] border rounded-md px-4 py-3 text-sm text-[#1C1917] placeholder-stone-500 focus:outline-none focus:border-[#7C2D12] transition ${phoneError ? 'border-red-400' : 'border-[#C9A961]'}`}
-                />
-                {phoneError && (
-                  <p className="text-red-700 text-xs mt-1 px-1">{phoneError}</p>
-                )}
-                <p className="text-xs text-stone-400 mt-1 px-1">
-                  Số điện thoại sẽ được dùng để tư vấn qua Zalo. Chúng tôi không chia sẻ thông tin của bạn cho bên thứ ba.
+          ) : (
+            <div className="bg-white border-2 border-[#7C2D12] rounded-lg p-6 sm:p-8 shadow-xl">
+              <div className="text-center mb-6">
+                <div className="text-4xl mb-2">📩</div>
+                <h2
+                  className="text-2xl font-extrabold text-[#7C2D12] mb-2"
+                  style={{ fontFamily: '"Noto Serif", Georgia, serif' }}
+                >
+                  Nhận Bản Đồ Ngay
+                </h2>
+                <p className="text-sm text-stone-600">
+                  Em gửi link đọc bản đồ qua email — bấm 1 lần là vào, không cần nhớ mật khẩu.
                 </p>
               </div>
-              <div>
+
+              <form onSubmit={handleSubmit} className="space-y-3">
                 <input
-                  type="password"
+                  type="text"
                   required
-                  minLength={8}
-                  placeholder="Tạo mật khẩu (tối thiểu 8 ký tự) *"
-                  value={form.password}
-                  onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+                  placeholder="Họ và tên *"
+                  value={form.name}
+                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   className="w-full bg-[#FEF7E6] border border-[#C9A961] rounded-md px-4 py-3 text-sm text-[#1C1917] placeholder-stone-500 focus:outline-none focus:border-[#7C2D12] transition"
                 />
-                <p className="text-xs text-stone-500 mt-1 px-1">Dùng để đăng nhập đọc lại bất cứ lúc nào</p>
-              </div>
-
-              {error && (
-                <p className="text-red-700 text-xs text-center bg-red-50 border border-red-200 rounded p-2">
-                  {error}
-                </p>
-              )}
-
-              <div>
-                <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="email"
+                  required
+                  placeholder="Email của anh/chị *"
+                  value={form.email}
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  className="w-full bg-[#FEF7E6] border border-[#C9A961] rounded-md px-4 py-3 text-sm text-[#1C1917] placeholder-stone-500 focus:outline-none focus:border-[#7C2D12] transition"
+                />
+                <div>
                   <input
-                    type="checkbox"
-                    checked={form.consent}
-                    onChange={(e) => { setForm((f) => ({ ...f, consent: e.target.checked })); setConsentError('') }}
-                    className="mt-0.5 shrink-0 accent-[#7C2D12] w-4 h-4"
+                    type="tel"
+                    required
+                    placeholder="Số điện thoại * (VD: 0901234567)"
+                    value={form.phone}
+                    onChange={(e) => { setForm((f) => ({ ...f, phone: e.target.value })); setPhoneError('') }}
+                    className={`w-full bg-[#FEF7E6] border rounded-md px-4 py-3 text-sm text-[#1C1917] placeholder-stone-500 focus:outline-none focus:border-[#7C2D12] transition ${phoneError ? 'border-red-400' : 'border-[#C9A961]'}`}
                   />
-                  <span className="text-xs text-stone-600 leading-relaxed">
-                    Tôi đồng ý nhận tư vấn qua Zalo/điện thoại từ tamlyhocvn
-                  </span>
-                </label>
-                {consentError && (
-                  <p className="text-red-700 text-xs mt-1">{consentError}</p>
+                  {phoneError && (
+                    <p className="text-red-700 text-xs mt-1 px-1">{phoneError}</p>
+                  )}
+                  <p className="text-xs text-stone-400 mt-1 px-1">
+                    Số điện thoại sẽ được dùng để tư vấn qua Zalo. Chúng tôi không chia sẻ thông tin của bạn cho bên thứ ba.
+                  </p>
+                </div>
+
+                {error && (
+                  <p className="text-red-700 text-xs text-center bg-red-50 border border-red-200 rounded p-2">
+                    {error}
+                  </p>
                 )}
-              </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[#7C2D12] hover:bg-[#5C1A0A] disabled:opacity-60 text-[#FEF7E6] font-bold py-4 rounded-md transition text-base shadow-lg"
-              >
-                {loading ? 'Đang xử lý...' : '🗝️ NHẬN BẢN ĐỒ VÀ ĐỌC NGAY'}
-              </button>
-            </form>
+                <div>
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.consent}
+                      onChange={(e) => { setForm((f) => ({ ...f, consent: e.target.checked })); setConsentError('') }}
+                      className="mt-0.5 shrink-0 accent-[#7C2D12] w-4 h-4"
+                    />
+                    <span className="text-xs text-stone-600 leading-relaxed">
+                      Tôi đồng ý nhận tư vấn qua Zalo/điện thoại từ tamlyhocvn
+                    </span>
+                  </label>
+                  {consentError && (
+                    <p className="text-red-700 text-xs mt-1">{consentError}</p>
+                  )}
+                </div>
 
-            <p className="text-center text-xs text-stone-500 mt-4">
-              🔒 Bảo mật. Không spam. Đăng nhập bất cứ lúc nào để đọc lại.
-            </p>
-          </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-[#7C2D12] hover:bg-[#5C1A0A] disabled:opacity-60 text-[#FEF7E6] font-bold py-4 rounded-md transition text-base shadow-lg"
+                >
+                  {loading ? 'Đang xử lý...' : '🗝️ NHẬN BẢN ĐỒ VÀ ĐỌC NGAY'}
+                </button>
+              </form>
+
+              <p className="text-center text-xs text-stone-500 mt-4">
+                🔒 Bảo mật. Không spam. Link hiệu lực 7 ngày.
+              </p>
+            </div>
+          )}
         </div>
       </section>
 

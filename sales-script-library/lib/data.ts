@@ -25,7 +25,7 @@ export interface Member {
   id: string
   name: string
   email: string
-  password: string
+  password?: string
   phone?: string
   consent?: boolean
   consentAt?: string
@@ -40,6 +40,9 @@ export interface Member {
   verificationToken?: string
   verificationTokenExpiresAt?: string
   verificationSentAt?: string
+  // Magic link auth (ban-do lead magnet)
+  magicToken?: string
+  magicTokenExpiresAt?: string  // ISO string
   // Renewal tracking
   lastReferenceCode?: string   // SePay reference of last confirmed payment
   // Tier — ngoaimon (Khẩu Quyết 199k hoặc Membership 99k) vs noimon (Tàng Kinh Các Nội Môn 300k/499k)
@@ -140,6 +143,11 @@ export async function getMemberByOrderCode(orderCode: number): Promise<Member | 
 export async function getMemberByVerificationToken(token: string): Promise<Member | undefined> {
   const members = await getMembers()
   return members.find(m => m.verificationToken === token)
+}
+
+export async function getMemberByMagicToken(token: string): Promise<Member | undefined> {
+  const members = await getMembers()
+  return members.find(m => m.magicToken === token)
 }
 
 export async function saveMember(member: Member): Promise<void> {

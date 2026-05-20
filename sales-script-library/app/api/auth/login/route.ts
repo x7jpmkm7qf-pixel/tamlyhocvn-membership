@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   }
 
   const member = await getMember(email.toLowerCase().trim())
-  if (!member || !(await verifyPassword(password, member.password))) {
+  if (!member || !member.password || !(await verifyPassword(password, member.password))) {
     return NextResponse.json({ error: 'Email hoặc mật khẩu không đúng' }, { status: 401 })
   }
 

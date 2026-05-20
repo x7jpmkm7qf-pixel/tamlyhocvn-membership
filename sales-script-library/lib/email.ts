@@ -451,6 +451,129 @@ Có câu hỏi nhắn Zalo: 0961 588 227 — Hán Văn Sơn
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// MAGIC LINK EMAIL — Gửi link đăng nhập cho ban-do lead magnet (không cần mật khẩu)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export async function sendBanDoMagicLinkEmail(opts: {
+  to: string
+  name: string
+  token: string
+}): Promise<{ ok: boolean; error?: string }> {
+  const magicUrl = `${APP_URL}/auth?token=${opts.token}`
+  const firstName = getFirstName(opts.name)
+
+  if (!resend) {
+    console.warn('[email] RESEND_API_KEY chưa cấu hình — bỏ qua ban-do magic link')
+    console.log(`[email][DEV] Magic URL: ${magicUrl}`)
+    return { ok: true }
+  }
+
+  let pdfAttachment: { filename: string; content: string } | undefined
+  try {
+    const pdfPath = path.join(process.cwd(), 'public', 'files', 'Ban-Do-4-Loai-Khach-Hang-Sales-Viet.pdf')
+    const buf = await fs.readFile(pdfPath)
+    pdfAttachment = {
+      filename: 'Ban-Do-4-Loai-Khach-Hang-Sales-Viet.pdf',
+      content: buf.toString('base64'),
+    }
+  } catch (e) {
+    console.warn('[email] Read ban-do PDF failed, gửi email không attach:', e instanceof Error ? e.message : e)
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="vi">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#FEF7E6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#1C1917;">
+  <div style="max-width:560px;margin:0 auto;padding:32px 16px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:36px;line-height:1;margin-bottom:8px;">📜</div>
+      <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-weight:700;color:#7C2D12;letter-spacing:2px;">TÀNG KINH CÁC</div>
+      <div style="font-size:11px;letter-spacing:3px;color:#A48A4A;margin-top:2px;">— tamlyhocvn.club —</div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #C9A961;border-radius:12px;padding:28px;border-top:6px solid #7C2D12;">
+      <h1 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:700;margin:0 0 14px;color:#7C2D12;">
+        ${escapeHtml(firstName)} sư huynh — Bản Đồ đã sẵn sàng 🗺️
+      </h1>
+
+      <p style="font-size:14.5px;line-height:1.7;color:#1C1917;margin:0 0 14px;">
+        Em là Sơn. Sư huynh không cần nhớ mật khẩu — chỉ cần bấm nút bên dưới là vào đọc ngay.
+      </p>
+
+      <p style="font-size:14px;line-height:1.7;color:#1C1917;margin:0 0 6px;">
+        Link này chỉ dành riêng cho sư huynh và có hiệu lực trong <strong>7 ngày</strong>.
+      </p>
+
+      <div style="text-align:center;margin:24px 0;">
+        <a href="${magicUrl}" style="display:inline-block;background:#7C2D12;color:#FEF7E6;text-decoration:none;font-weight:700;padding:14px 32px;border-radius:8px;font-size:15px;letter-spacing:0.5px;">
+          🗝️ Bấm vào đây để đọc Bản Đồ →
+        </a>
+      </div>
+
+      <p style="font-size:12.5px;color:#6b3a20;margin:0 0 14px;">
+        Hoặc copy link này dán vào trình duyệt:<br>
+        <a href="${magicUrl}" style="color:#7C2D12;word-break:break-all;font-size:12px;">${magicUrl}</a>
+      </p>
+
+      <div style="background:#FEF7E6;border-left:4px solid #C9A961;padding:14px 18px;border-radius:0 6px 6px 0;margin:18px 0;">
+        <p style="font-size:13.5px;line-height:1.6;color:#1C1917;margin:0;">
+          📎 <strong>PDF đính kèm:</strong> Ban-Do-4-Loai-Khach-Hang-Sales-Viet.pdf — sư huynh cũng có thể đọc trực tiếp từ file đính kèm trong email này.
+          ${!pdfAttachment ? '<br><span style="color:#7C2D12;font-size:12px;">(Nếu không thấy file, sư huynh bấm link trên — em gửi lại ngay nếu cần)</span>' : ''}
+        </p>
+      </div>
+
+      <hr style="border:none;border-top:1px dashed #C9A961;margin:24px 0;">
+
+      <p style="font-size:13px;line-height:1.7;color:#6b3a20;margin:0;">
+        Có câu hỏi nhắn Zalo cho em:<br>
+        <strong style="color:#7C2D12;">📱 0961 588 227 — Hán Văn Sơn</strong>
+      </p>
+    </div>
+
+    <p style="text-align:center;font-size:11px;color:#A48A4A;margin-top:20px;font-style:italic;font-family:'Cormorant Garamond',Georgia,serif;">
+      "Bắt đúng mạch khách — chốt đúng cách deal."<br>
+      <span style="color:#b8895a;font-size:10px;letter-spacing:1px;">— TÀNG KINH CÁC —</span>
+    </p>
+  </div>
+</body>
+</html>`
+
+  const text = `📜 TÀNG KINH CÁC — tamlyhocvn.club
+
+${firstName} sư huynh — Bản Đồ đã sẵn sàng!
+
+Em là Sơn. Sư huynh không cần nhớ mật khẩu — chỉ cần bấm link bên dưới là vào đọc ngay.
+
+🗝️ Link đọc Bản Đồ (hiệu lực 7 ngày):
+${magicUrl}
+
+📎 PDF đính kèm: Ban-Do-4-Loai-Khach-Hang-Sales-Viet.pdf — sư huynh cũng có thể đọc trực tiếp từ file đính kèm trong email này.
+
+Có câu hỏi nhắn Zalo: 0961 588 227 — Hán Văn Sơn
+— Tàng Kinh Các (tamlyhocvn.club)`
+
+  try {
+    const { error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: opts.to,
+      subject: '📜 Link đọc Bản Đồ của anh/chị — Tàng Kinh Các',
+      html,
+      text,
+      ...(pdfAttachment && { attachments: [pdfAttachment] }),
+    })
+    if (error) {
+      console.error('[email] sendBanDoMagicLinkEmail Resend error:', error)
+      return { ok: false, error: error.message }
+    }
+    return { ok: true }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Unknown error'
+    console.error('[email] sendBanDoMagicLinkEmail failed:', e)
+    return { ok: false, error: msg }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // WELCOME EMAIL — Gửi ngay sau khi tạo tài khoản mua Khẩu Quyết (auto-gen password)
 // ═══════════════════════════════════════════════════════════════════════════
 

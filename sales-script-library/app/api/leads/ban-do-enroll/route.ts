@@ -1,23 +1,22 @@
 /**
  * POST /api/leads/ban-do-enroll
- * Body: { name, email, password }
+ * Body: { name, email, phone, consent }
  *
- * Creates member account + enrolls in Bản Đồ course + sets session cookie.
- * Returns { redirectTo } on success.
+ * Creates member account + enrolls in Bản Đồ course + sends magic link email.
+ * Returns { ok: true } on success — no cookie, no redirect (magic link flow).
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getMember, saveMember, Member } from '@/lib/data'
-import { hashPassword, verifyPassword, setMemberCookie, MEMBER_COOKIE_NAME } from '@/lib/auth'
 import { getCourseBySlug, enrollUser, getEnrollment } from '@/lib/courses'
-import { sendBanDoWelcomeEmail } from '@/lib/email'
+import { sendBanDoMagicLinkEmail } from '@/lib/email'
 import { notifyBanDoLead } from '@/lib/telegram'
+import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
 
 const REDIS_URL   = process.env.UPSTASH_REDIS_REST_URL
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN
-const READER_URL  = '/tang-kinh-cac/khoa-hoc/ban-do'
 
 async function checkRateLimit(ip: string): Promise<boolean> {
   if (!REDIS_URL || !REDIS_TOKEN) return true
@@ -52,6 +51,12 @@ function normalizePhone(raw: string): string {
   return p.startsWith('+84') ? '0' + p.slice(3) : p
 }
 
+function generateMagicToken() {
+  const magicToken = crypto.randomBytes(32).toString('hex')
+  const magicTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  return { magicToken, magicTokenExpiresAt }
+}
+
 export async function POST(req: NextRequest) {
   try {
     return await handlePost(req)
@@ -69,16 +74,13 @@ async function handlePost(req: NextRequest) {
     return NextResponse.json({ error: 'Thử lại sau — quá nhiều yêu cầu trong 1 giờ' }, { status: 429 })
   }
 
-  const { name, email, password, phone, consent } = await req.json()
+  const { name, email, phone, consent } = await req.json()
 
-  if (!name || !email || !password) {
-    return NextResponse.json({ error: 'Vui lòng điền đầy đủ họ tên, email và mật khẩu' }, { status: 400 })
+  if (!name || !email) {
+    return NextResponse.json({ error: 'Vui lòng điền đầy đủ họ tên và email' }, { status: 400 })
   }
   if (!email.includes('@') || !email.includes('.')) {
     return NextResponse.json({ error: 'Email không hợp lệ' }, { status: 400 })
-  }
-  if (typeof password !== 'string' || password.length < 8) {
-    return NextResponse.json({ error: 'Mật khẩu phải có ít nhất 8 ký tự' }, { status: 400 })
   }
   if (!phone || !PHONE_REGEX.test(String(phone).trim())) {
     return NextResponse.json({ error: 'Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0 hoặc +84)' }, { status: 400 })
@@ -88,8 +90,8 @@ async function handlePost(req: NextRequest) {
   }
 
   const normalizedPhone = normalizePhone(String(phone))
-
   const normalizedEmail = email.toLowerCase().trim()
+
   const course = await getCourseBySlug('ban-do')
   if (!course) {
     return NextResponse.json({ error: 'Khóa học chưa sẵn sàng — vui lòng thử lại sau' }, { status: 503 })
@@ -100,31 +102,26 @@ async function handlePost(req: NextRequest) {
   if (existing) {
     // Check if already enrolled
     const enrollment = await getEnrollment(existing.id, course.id)
+
     if (enrollment) {
-      // Already has access — let them log in normally
-      return NextResponse.json(
-        { error: 'Email này đã có tài khoản và đã được cấp bản đồ. Hãy đăng nhập để đọc.', redirectTo: `/login?from=${READER_URL}` },
-        { status: 409 }
-      )
+      // Already enrolled — generate new magic token and resend
+      const { magicToken, magicTokenExpiresAt } = generateMagicToken()
+      await saveMember({ ...existing, magicToken, magicTokenExpiresAt })
+      sendBanDoMagicLinkEmail({ to: existing.email, name: existing.name, token: magicToken })
+        .catch(e => console.error('[ban-do-enroll] magic link email failed:', e))
+      return NextResponse.json({ ok: true })
     }
 
-    // Verify password before enrolling
-    const passwordOk = await verifyPassword(password, existing.password)
-    if (!passwordOk) {
-      return NextResponse.json(
-        { error: 'Email này đã có tài khoản — nhập đúng mật khẩu hoặc vào /login để đăng nhập.' },
-        { status: 401 }
-      )
-    }
-
-    // Enroll existing member
+    // Existing member not yet enrolled — enroll and send magic link
+    const { magicToken, magicTokenExpiresAt } = generateMagicToken()
     await enrollUser(existing.id, course.id)
-    // Track ban-do enrollment in member record; update phone/consent if not yet set
     await saveMember({
       ...existing,
       phone: existing.phone ?? normalizedPhone,
       consent: existing.consent ?? true,
       consentAt: existing.consentAt ?? new Date().toISOString(),
+      magicToken,
+      magicTokenExpiresAt,
       enrollments: {
         ...existing.enrollments,
         'ban-do': existing.enrollments?.['ban-do'] || {
@@ -135,27 +132,24 @@ async function handlePost(req: NextRequest) {
         },
       },
     })
-    const session = { id: existing.id, name: existing.name, email: existing.email }
-    const encoded = setMemberCookie(session)
-    const res = NextResponse.json({ ok: true, redirectTo: `${READER_URL}?welcome=true` })
-    res.cookies.set(MEMBER_COOKIE_NAME, encoded, {
-      httpOnly: true, secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', maxAge: 60 * 60 * 24 * 7, path: '/',
-    })
-    return res
+    sendBanDoMagicLinkEmail({ to: existing.email, name: existing.name, token: magicToken })
+      .catch(e => console.error('[ban-do-enroll] magic link email failed:', e))
+    return NextResponse.json({ ok: true })
   }
 
-  // New user — create member, enroll, set cookie, send email
+  // New user — create member WITHOUT password, with magic token, enroll, send email
+  const { magicToken, magicTokenExpiresAt } = generateMagicToken()
   const member: Member = {
     id: crypto.randomUUID(),
     name: name.trim(),
     email: normalizedEmail,
-    password: await hashPassword(password),
     phone: normalizedPhone,
     consent: true,
     consentAt: new Date().toISOString(),
     status: 'active',
     createdAt: new Date().toISOString(),
+    magicToken,
+    magicTokenExpiresAt,
     enrollments: {
       'ban-do': {
         status: 'active',
@@ -170,21 +164,10 @@ async function handlePost(req: NextRequest) {
   await enrollUser(member.id, course.id)
 
   // Fire-and-forget notifications (don't block response)
-  Promise.all([
-    sendBanDoWelcomeEmail({ to: member.email, name: member.name }).catch(e =>
-      console.error('[ban-do-enroll] welcome email failed:', e)
-    ),
-    notifyBanDoLead({ name: member.name, email: member.email }).catch(e =>
-      console.error('[ban-do-enroll] telegram notify failed:', e)
-    ),
-  ])
+  sendBanDoMagicLinkEmail({ to: member.email, name: member.name, token: magicToken })
+    .catch(e => console.error('[ban-do-enroll] magic link email failed:', e))
+  notifyBanDoLead({ name: member.name, email: member.email })
+    .catch(e => console.error('[ban-do-enroll] telegram notify failed:', e))
 
-  const session = { id: member.id, name: member.name, email: member.email }
-  const encoded = setMemberCookie(session)
-  const res = NextResponse.json({ ok: true, redirectTo: `${READER_URL}?welcome=true` })
-  res.cookies.set(MEMBER_COOKIE_NAME, encoded, {
-    httpOnly: true, secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax', maxAge: 60 * 60 * 24 * 7, path: '/',
-  })
-  return res
+  return NextResponse.json({ ok: true })
 }
