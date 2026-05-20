@@ -45,6 +45,13 @@ async function checkRateLimit(ip: string): Promise<boolean> {
   }
 }
 
+const PHONE_REGEX = /^(0|\+84)[0-9]{9}$/
+
+function normalizePhone(raw: string): string {
+  const p = raw.trim()
+  return p.startsWith('+84') ? '0' + p.slice(3) : p
+}
+
 export async function POST(req: NextRequest) {
   // Rate limit
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
@@ -53,7 +60,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Thử lại sau — quá nhiều yêu cầu trong 1 giờ' }, { status: 429 })
   }
 
-  const { name, email, password } = await req.json()
+  const { name, email, password, phone, consent } = await req.json()
 
   if (!name || !email || !password) {
     return NextResponse.json({ error: 'Vui lòng điền đầy đủ họ tên, email và mật khẩu' }, { status: 400 })
@@ -64,6 +71,14 @@ export async function POST(req: NextRequest) {
   if (typeof password !== 'string' || password.length < 8) {
     return NextResponse.json({ error: 'Mật khẩu phải có ít nhất 8 ký tự' }, { status: 400 })
   }
+  if (!phone || !PHONE_REGEX.test(String(phone).trim())) {
+    return NextResponse.json({ error: 'Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0 hoặc +84)' }, { status: 400 })
+  }
+  if (consent !== true) {
+    return NextResponse.json({ error: 'Vui lòng đồng ý điều khoản để tiếp tục' }, { status: 400 })
+  }
+
+  const normalizedPhone = normalizePhone(String(phone))
 
   const normalizedEmail = email.toLowerCase().trim()
   const course = await getCourseBySlug('ban-do')
@@ -95,9 +110,12 @@ export async function POST(req: NextRequest) {
 
     // Enroll existing member
     await enrollUser(existing.id, course.id)
-    // Track ban-do enrollment in member record
+    // Track ban-do enrollment in member record; update phone/consent if not yet set
     await saveMember({
       ...existing,
+      phone: existing.phone ?? normalizedPhone,
+      consent: existing.consent ?? true,
+      consentAt: existing.consentAt ?? new Date().toISOString(),
       enrollments: {
         ...existing.enrollments,
         'ban-do': existing.enrollments?.['ban-do'] || {
@@ -124,6 +142,9 @@ export async function POST(req: NextRequest) {
     name: name.trim(),
     email: normalizedEmail,
     password: await hashPassword(password),
+    phone: normalizedPhone,
+    consent: true,
+    consentAt: new Date().toISOString(),
     status: 'active',
     createdAt: new Date().toISOString(),
     enrollments: {

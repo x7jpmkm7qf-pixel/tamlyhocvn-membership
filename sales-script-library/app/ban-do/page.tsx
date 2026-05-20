@@ -69,17 +69,34 @@ const FAQS = [
 
 export default function BanDoLandingPage() {
   const router = useRouter()
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', consent: false })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [phoneError, setPhoneError] = useState('')
+  const [consentError, setConsentError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setPhoneError('')
+    setConsentError('')
 
     if (form.password.length < 8) {
       setError('Mật khẩu phải có ít nhất 8 ký tự')
+      setLoading(false)
+      return
+    }
+
+    const phoneRegex = /^(0|\+84)[0-9]{9}$/
+    if (!phoneRegex.test(form.phone.trim())) {
+      setPhoneError('Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0 hoặc +84)')
+      setLoading(false)
+      return
+    }
+
+    if (!form.consent) {
+      setConsentError('Vui lòng đồng ý điều khoản để tiếp tục')
       setLoading(false)
       return
     }
@@ -88,7 +105,7 @@ export default function BanDoLandingPage() {
       const res = await fetch('/api/leads/ban-do-enroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),
+        body: JSON.stringify({ name: form.name, email: form.email, password: form.password, phone: form.phone.trim(), consent: form.consent }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Lỗi không xác định')
@@ -442,6 +459,22 @@ export default function BanDoLandingPage() {
               />
               <div>
                 <input
+                  type="tel"
+                  required
+                  placeholder="Số điện thoại * (VD: 0901234567)"
+                  value={form.phone}
+                  onChange={(e) => { setForm((f) => ({ ...f, phone: e.target.value })); setPhoneError('') }}
+                  className={`w-full bg-[#FEF7E6] border rounded-md px-4 py-3 text-sm text-[#1C1917] placeholder-stone-500 focus:outline-none focus:border-[#7C2D12] transition ${phoneError ? 'border-red-400' : 'border-[#C9A961]'}`}
+                />
+                {phoneError && (
+                  <p className="text-red-700 text-xs mt-1 px-1">{phoneError}</p>
+                )}
+                <p className="text-xs text-stone-400 mt-1 px-1">
+                  Số điện thoại sẽ được dùng để tư vấn qua Zalo. Chúng tôi không chia sẻ thông tin của bạn cho bên thứ ba.
+                </p>
+              </div>
+              <div>
+                <input
                   type="password"
                   required
                   minLength={8}
@@ -458,6 +491,23 @@ export default function BanDoLandingPage() {
                   {error}
                 </p>
               )}
+
+              <div>
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.consent}
+                    onChange={(e) => { setForm((f) => ({ ...f, consent: e.target.checked })); setConsentError('') }}
+                    className="mt-0.5 shrink-0 accent-[#7C2D12] w-4 h-4"
+                  />
+                  <span className="text-xs text-stone-600 leading-relaxed">
+                    Tôi đồng ý nhận tư vấn qua Zalo/điện thoại từ tamlyhocvn
+                  </span>
+                </label>
+                {consentError && (
+                  <p className="text-red-700 text-xs mt-1">{consentError}</p>
+                )}
+              </div>
 
               <button
                 type="submit"

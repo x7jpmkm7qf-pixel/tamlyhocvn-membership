@@ -27,6 +27,8 @@ export interface Member {
   email: string
   password: string
   phone?: string
+  consent?: boolean
+  consentAt?: string
   status?: 'pending' | 'active'
   createdAt: string
   expiresAt?: string

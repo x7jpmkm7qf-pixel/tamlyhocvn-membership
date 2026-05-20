@@ -13,6 +13,8 @@ interface Member {
   name: string
   email: string
   phone?: string
+  consent?: boolean
+  consentAt?: string
   status?: 'pending' | 'active'
   createdAt: string
   expiresAt?: string
@@ -441,10 +443,29 @@ function AdminPageInner() {
                     <div key={m.id} className="bg-white border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-slate-800 truncate">{m.name}</p>
-                        <p className="text-xs text-slate-500 truncate">
-                          {m.email}
-                          {m.phone && <> · <a href={`tel:${m.phone}`} className="text-violet-600 hover:underline">{m.phone}</a></>}
-                          {m.phone && <> · <a href={`https://zalo.me/${m.phone}`} target="_blank" rel="noopener" className="text-emerald-600 hover:underline">Zalo</a></>}
+                        <p className="text-xs text-slate-500 truncate">{m.email}</p>
+                        <p className="text-xs mt-0.5 flex items-center gap-1.5">
+                          {m.phone ? (
+                            <>
+                              <a
+                                href={`https://zalo.me/${m.phone}`}
+                                target="_blank"
+                                rel="noopener"
+                                className="text-blue-500 hover:underline"
+                              >
+                                📞 {m.phone}
+                              </a>
+                              <button
+                                onClick={() => navigator.clipboard.writeText(m.phone!)}
+                                title="Copy SĐT"
+                                className="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded text-[10px] transition"
+                              >
+                                Copy
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-slate-300">📞 —</span>
+                          )}
                         </p>
                         <p className="text-xs text-slate-400">Đăng ký: {fmtDateTime(m.createdAt)}</p>
                       </div>
@@ -535,13 +556,29 @@ function AdminPageInner() {
                             <td className="px-4 py-3">
                               <p className="text-sm font-medium text-slate-800">{m.name}</p>
                               <p className="text-xs text-slate-500">{m.email}</p>
-                              {m.phone && (
-                                <p className="text-xs mt-0.5">
-                                  <a href={`tel:${m.phone}`} className="text-violet-600 hover:underline">{m.phone}</a>
-                                  {' · '}
-                                  <a href={`https://zalo.me/${m.phone}`} target="_blank" rel="noopener" className="text-emerald-600 hover:underline">Zalo</a>
-                                </p>
-                              )}
+                              <p className="text-xs mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                {m.phone ? (
+                                  <>
+                                    <a
+                                      href={`https://zalo.me/${m.phone}`}
+                                      target="_blank"
+                                      rel="noopener"
+                                      className="text-blue-500 hover:underline"
+                                    >
+                                      📞 {m.phone}
+                                    </a>
+                                    <button
+                                      onClick={() => navigator.clipboard.writeText(m.phone!)}
+                                      title="Copy SĐT"
+                                      className="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 px-1.5 py-0.5 rounded text-[10px] transition"
+                                    >
+                                      Copy
+                                    </button>
+                                  </>
+                                ) : (
+                                  <span className="text-slate-300">📞 —</span>
+                                )}
+                              </p>
                             </td>
                             <td className="px-4 py-3">
                               {isPending ? (
