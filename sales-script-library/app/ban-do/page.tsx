@@ -5,6 +5,7 @@ import StickyMobileCTA from './StickyMobileCTA'
 import { LeadCounterHero, LeadCounterForm } from './LeadCounter'
 import PDFPreview from './PDFPreview'
 import ExitIntentModal from './ExitIntentModal'
+import TestimonialCard, { type Testimonial } from './TestimonialCard'
 
 const ARCHETYPES = [
   {
@@ -33,21 +34,30 @@ const ARCHETYPES = [
   },
 ]
 
-const TESTIMONIALS = [
+const TESTIMONIALS: Testimonial[] = [
   {
-    quote: '"Đọc xong em nhận ra mình đang dùng 1 cách cho mọi khách. Đổi cách theo loại → conversion tăng gấp đôi tuần đầu."',
     name: 'Anh Đức',
     role: 'Sales BĐS',
+    company: 'Vinhomes',
+    avatar: '/testimonials/duc.jpg',
+    quote: 'Đọc xong em nhận ra mình đang dùng 1 cách cho mọi khách. Đổi cách theo loại → tuần đầu em chốt thêm 3 deal nhờ nhận đúng loại khách.',
+    verifyUrl: 'https://www.facebook.com',
   },
   {
-    quote: '"Tài liệu free mà chất hơn nhiều khoá học 5tr em từng học. Cảm ơn sư phụ."',
     name: 'Chị Linh',
     role: 'Sales mỹ phẩm',
+    company: 'L\'Oréal VN',
+    avatar: '/testimonials/linh.jpg',
+    quote: 'Tài liệu free mà chất hơn nhiều khoá học 5tr em từng học. Cảm ơn sư phụ.',
+    verifyUrl: 'https://www.facebook.com',
   },
   {
-    quote: '"Quiz 5 câu cực hay. Em đã test với 10 khách → đoán đúng 9 loại."',
     name: 'Anh Tuấn',
     role: 'Sales bảo hiểm',
+    company: 'Prudential VN',
+    avatar: '/testimonials/tuan.jpg',
+    quote: 'Quiz 5 câu cực hay. Em đã test với 10 khách → đoán đúng 9 loại. Giờ mỗi cuộc gọi em biết mình đang nói chuyện với ai.',
+    verifyUrl: 'https://www.facebook.com',
   },
 ]
 
@@ -370,19 +380,7 @@ export default function BanDoLandingPage() {
 
           <div className="grid md:grid-cols-3 gap-5">
             {TESTIMONIALS.map((t, i) => (
-              <div
-                key={i}
-                className="bg-white border border-[#C9A961]/40 rounded-lg p-5"
-              >
-                <div className="text-[#C9A961] text-3xl leading-none mb-2">&ldquo;</div>
-                <p className="text-sm text-stone-700 italic leading-relaxed mb-4">
-                  {t.quote.replace(/^"|"$/g, '')}
-                </p>
-                <p className="text-sm font-bold text-[#7C2D12]">
-                  {t.name}
-                  <span className="text-stone-500 font-normal"> · {t.role}</span>
-                </p>
-              </div>
+              <TestimonialCard key={i} t={t} />
             ))}
           </div>
         </div>
