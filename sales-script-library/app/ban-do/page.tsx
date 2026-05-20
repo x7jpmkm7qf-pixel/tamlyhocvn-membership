@@ -4,6 +4,7 @@ import Link from 'next/link'
 import StickyMobileCTA from './StickyMobileCTA'
 import { LeadCounterHero, LeadCounterForm } from './LeadCounter'
 import PDFPreview from './PDFPreview'
+import ExitIntentModal from './ExitIntentModal'
 
 const ARCHETYPES = [
   {
@@ -599,6 +600,7 @@ export default function BanDoLandingPage() {
       </section>
 
       <StickyMobileCTA />
+      <ExitIntentModal formSent={sent} />
 
       {/* ============ FOOTER ============ */}
       <footer className="border-t border-[#7C2D12]/15 py-8 px-4 text-center text-xs text-stone-500">
