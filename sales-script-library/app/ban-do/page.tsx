@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import StickyMobileCTA from './StickyMobileCTA'
+import { LeadCounterHero, LeadCounterForm } from './LeadCounter'
 
 const ARCHETYPES = [
   {
@@ -182,9 +183,11 @@ export default function BanDoLandingPage() {
             , đọc trong 30 phút, dùng cả đời.
           </p>
 
-          <p className="text-sm text-stone-600 max-w-xl mx-auto mb-8">
+          <p className="text-sm text-stone-600 max-w-xl mx-auto mb-4">
             Phân loại khách hàng theo tâm lý hành vi từ 3 năm CEO 100 telesale + Khoa học hành vi (Cialdini, Kahneman).
           </p>
+
+          <LeadCounterHero />
 
           {/* 3 bullets */}
           <div className="grid sm:grid-cols-3 gap-3 max-w-3xl mx-auto mb-10 text-left">
@@ -503,6 +506,8 @@ export default function BanDoLandingPage() {
                     <p className="text-red-700 text-xs mt-1">{consentError}</p>
                   )}
                 </div>
+
+                <LeadCounterForm />
 
                 <button
                   type="submit"
