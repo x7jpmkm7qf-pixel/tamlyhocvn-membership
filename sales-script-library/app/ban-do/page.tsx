@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import StickyMobileCTA from './StickyMobileCTA'
 import { LeadCounterHero, LeadCounterForm } from './LeadCounter'
+import PDFPreview from './PDFPreview'
 
 const ARCHETYPES = [
   {
@@ -279,26 +280,34 @@ export default function BanDoLandingPage() {
             4 archetype khách hàng Việt Nam — mỗi loại có chân dung tâm lý, dấu hiệu nhận biết và cách tiếp cận chuyên biệt.
           </p>
 
-          <div className="grid md:grid-cols-2 gap-5">
-            {ARCHETYPES.map((a, i) => (
-              <div
-                key={i}
-                className="bg-white border border-[#C9A961]/40 rounded-lg p-6 hover:border-[#7C2D12]/40 transition"
-              >
-                <div className="text-4xl mb-3">{a.icon}</div>
-                <h3
-                  className="text-lg font-bold text-[#1C1917] mb-1"
-                  style={{ fontFamily: '"Noto Serif", Georgia, serif' }}
+          <div className="flex flex-col lg:flex-row gap-10 items-start">
+            {/* PDF Preview — left on desktop, top on mobile */}
+            <div className="lg:w-[42%] flex justify-center lg:justify-start lg:sticky lg:top-20">
+              <PDFPreview />
+            </div>
+
+            {/* Archetype cards — right on desktop */}
+            <div className="lg:w-[58%] grid sm:grid-cols-2 gap-5">
+              {ARCHETYPES.map((a, i) => (
+                <div
+                  key={i}
+                  className="bg-white border border-[#C9A961]/40 rounded-lg p-6 hover:border-[#7C2D12]/40 transition"
                 >
-                  {a.title}
-                </h3>
-                <p className="text-sm text-[#7C2D12] font-semibold mb-3">{a.need}</p>
-                <p className="text-sm text-stone-600 leading-relaxed mb-4">{a.summary}</p>
-                <span className="inline-block text-xs text-[#7C2D12] font-semibold border border-[#7C2D12]/30 rounded px-2 py-1">
-                  Đọc trong PDF →
-                </span>
-              </div>
-            ))}
+                  <div className="text-4xl mb-3">{a.icon}</div>
+                  <h3
+                    className="text-lg font-bold text-[#1C1917] mb-1"
+                    style={{ fontFamily: '"Noto Serif", Georgia, serif' }}
+                  >
+                    {a.title}
+                  </h3>
+                  <p className="text-sm text-[#7C2D12] font-semibold mb-3">{a.need}</p>
+                  <p className="text-sm text-stone-600 leading-relaxed mb-4">{a.summary}</p>
+                  <span className="inline-block text-xs text-[#7C2D12] font-semibold border border-[#7C2D12]/30 rounded px-2 py-1">
+                    Đọc trong PDF →
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
