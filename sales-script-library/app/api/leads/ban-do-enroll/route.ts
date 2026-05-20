@@ -53,6 +53,15 @@ function normalizePhone(raw: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  try {
+    return await handlePost(req)
+  } catch (err) {
+    console.error('[ban-do-enroll] unhandled error:', err instanceof Error ? err.message : err)
+    return NextResponse.json({ error: 'Lỗi server — vui lòng thử lại sau' }, { status: 500 })
+  }
+}
+
+async function handlePost(req: NextRequest) {
   // Rate limit
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
   const allowed = await checkRateLimit(ip)
