@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import StickyMobileCTA from './StickyMobileCTA'
 
 const ARCHETYPES = [
   {
@@ -204,6 +205,7 @@ export default function BanDoLandingPage() {
 
           {/* Hero CTA button → scroll to form */}
           <a
+            id="hero-cta"
             href="#cta-form"
             className="inline-flex items-center gap-2 bg-[#C9A961] hover:bg-[#A48A4A] text-[#1C1917] px-10 py-4 rounded-md font-bold transition shadow-lg"
           >
@@ -581,6 +583,8 @@ export default function BanDoLandingPage() {
           </Link>
         </div>
       </section>
+
+      <StickyMobileCTA />
 
       {/* ============ FOOTER ============ */}
       <footer className="border-t border-[#7C2D12]/15 py-8 px-4 text-center text-xs text-stone-500">
