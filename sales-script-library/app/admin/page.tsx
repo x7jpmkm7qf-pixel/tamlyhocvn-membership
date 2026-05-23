@@ -61,7 +61,7 @@ export default function AdminPage() {
 function AdminPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [tab, setTab] = useState<'scripts' | 'members' | 'leads' | 'settings'>('scripts')
+  const [tab, setTab] = useState<'scripts' | 'members' | 'leads' | 'affiliate' | 'settings'>('scripts')
   const [pwdForm, setPwdForm] = useState({ oldPwd: '', newPwd: '', confirmPwd: '' })
   const [pwdSubmitting, setPwdSubmitting] = useState(false)
   const [scripts, setScripts] = useState<Script[]>([])
@@ -79,6 +79,26 @@ function AdminPageInner() {
   const [msg, setMsg] = useState('')
   const [authed, setAuthed] = useState<boolean | null>(null)
 
+  // Affiliate state
+  interface AffPayout {
+    id: string; affiliate_email: string; total_amount: number
+    bank_name: string; bank_account: string; account_holder: string
+    status: 'pending' | 'approved' | 'rejected'; created_at: string
+    reviewed_at?: string; note?: string; commission_ids: string[]
+  }
+  interface AffCommission {
+    id: string; affiliate_email: string; buyer_email: string
+    order_reference_code: string; commission_amount: number
+    order_amount: number; referral_number: number
+    status: 'available' | 'clawback' | 'paid_out'; created_at: string; paid_out_at?: string
+  }
+  interface AffSummary { total_commissions: number; total_available: number; total_paid_out: number; pending_payouts: number }
+  const [affPayouts, setAffPayouts] = useState<AffPayout[]>([])
+  const [affCommissions, setAffCommissions] = useState<AffCommission[]>([])
+  const [affSummary, setAffSummary] = useState<AffSummary | null>(null)
+  const [affLoading, setAffLoading] = useState(false)
+  const [reviewNote, setReviewNote] = useState('')
+
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.json()).then(data => {
       if (!data.isAdmin) { router.push('/admin/login'); return }
@@ -86,6 +106,7 @@ function AdminPageInner() {
       loadScripts()
       loadMembers()
       loadLeads()
+      loadAffiliate()
     })
   }, [])
 
@@ -99,6 +120,34 @@ function AdminPageInner() {
 
   const loadScripts = () => fetch('/api/scripts').then(r => r.json()).then(setScripts)
   const loadMembers = () => fetch('/api/members').then(r => r.json()).then(setMembers)
+  const loadAffiliate = async () => {
+    setAffLoading(true)
+    try {
+      const d = await fetch('/api/admin/affiliate').then(r => r.json())
+      setAffPayouts(d.payouts || [])
+      setAffCommissions(d.commissions || [])
+      setAffSummary(d.summary || null)
+    } catch { /* ignore */ } finally { setAffLoading(false) }
+  }
+  const reviewPayout = async (id: string, action: 'approve' | 'reject') => {
+    const label = action === 'approve' ? 'DUYỆT' : 'TỪ CHỐI'
+    if (!confirm(`${label} yêu cầu rút tiền này?`)) return
+    const res = await fetch('/api/admin/affiliate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, action, note: reviewNote }),
+    })
+    if (res.ok) {
+      setMsg(action === 'approve' ? '✅ Đã duyệt — hoa hồng chuyển sang Paid Out' : '✅ Đã từ chối yêu cầu rút')
+      setReviewNote('')
+      loadAffiliate()
+      setTimeout(() => setMsg(''), 4000)
+    } else {
+      const d = await res.json()
+      setMsg('❌ ' + (d.error || 'Lỗi'))
+      setTimeout(() => setMsg(''), 3000)
+    }
+  }
   const loadLeads = () => fetch('/api/leads/free/list').then(r => r.json()).then(d => {
     setLeads(d.leads || [])
     setLeadStats(d.stats || null)
@@ -278,6 +327,14 @@ function AdminPageInner() {
             {leads.filter(l => l.status === 'new').length > 0 && (
               <span className="bg-rose-500 text-white text-xs font-black px-1.5 py-0.5 rounded-full">
                 {leads.filter(l => l.status === 'new').length} mới
+              </span>
+            )}
+          </button>
+          <button onClick={() => { setTab('affiliate'); loadAffiliate() }} className={`px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 ${tab === 'affiliate' ? 'bg-violet-600 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:border-violet-400'}`}>
+            💰 Affiliate
+            {affPayouts.filter(p => p.status === 'pending').length > 0 && (
+              <span className="bg-rose-500 text-white text-xs font-black px-1.5 py-0.5 rounded-full">
+                {affPayouts.filter(p => p.status === 'pending').length}
               </span>
             )}
           </button>
@@ -796,6 +853,217 @@ function AdminPageInner() {
                         ))}
                     </tbody>
                   </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Affiliate tab */}
+        {tab === 'affiliate' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-800">💰 Quản lý Affiliate</h2>
+              <button onClick={loadAffiliate} className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition">
+                {affLoading ? 'Đang tải...' : '↻ Làm mới'}
+              </button>
+            </div>
+
+            {/* Summary cards */}
+            {affSummary && (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  { label: 'Tổng giao dịch', value: affSummary.total_commissions + ' đơn', color: 'slate' },
+                  { label: 'Chờ rút', value: affSummary.total_available.toLocaleString('vi-VN') + 'đ', color: 'amber' },
+                  { label: 'Đã thanh toán', value: affSummary.total_paid_out.toLocaleString('vi-VN') + 'đ', color: 'emerald' },
+                  { label: 'Yêu cầu chờ duyệt', value: affSummary.pending_payouts + ' yêu cầu', color: 'rose' },
+                ].map(s => (
+                  <div key={s.label} className={`rounded-2xl border p-4 ${
+                    s.color === 'amber' ? 'bg-amber-50 border-amber-200' :
+                    s.color === 'emerald' ? 'bg-emerald-50 border-emerald-200' :
+                    s.color === 'rose' ? 'bg-rose-50 border-rose-200' :
+                    'bg-white border-slate-200'
+                  }`}>
+                    <p className={`text-xs font-medium mb-1 ${
+                      s.color === 'amber' ? 'text-amber-700' :
+                      s.color === 'emerald' ? 'text-emerald-700' :
+                      s.color === 'rose' ? 'text-rose-700' :
+                      'text-slate-500'
+                    }`}>{s.label}</p>
+                    <p className={`text-xl font-bold ${
+                      s.color === 'amber' ? 'text-amber-800' :
+                      s.color === 'emerald' ? 'text-emerald-800' :
+                      s.color === 'rose' ? 'text-rose-700' :
+                      'text-slate-800'
+                    }`}>{s.value}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Pending payout requests */}
+            {(() => {
+              const pending = affPayouts.filter(p => p.status === 'pending')
+              if (pending.length === 0) return null
+              return (
+                <div className="bg-rose-50 border border-rose-300 rounded-2xl p-5">
+                  <p className="text-sm font-bold text-rose-700 mb-4 flex items-center gap-2">
+                    🔴 Yêu cầu rút tiền đang chờ duyệt ({pending.length})
+                  </p>
+                  <div className="space-y-4">
+                    {pending.map(p => {
+                      const commCount = p.commission_ids.length
+                      return (
+                        <div key={p.id} className="bg-white border border-rose-200 rounded-xl p-4">
+                          <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                            <div>
+                              <p className="text-sm font-bold text-slate-800">{p.affiliate_email}</p>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                {new Date(p.created_at).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                {' · '}{commCount} hoa hồng
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xl font-black text-rose-600">{p.total_amount.toLocaleString('vi-VN')}đ</p>
+                            </div>
+                          </div>
+
+                          <div className="bg-slate-50 rounded-lg p-3 mb-3 grid grid-cols-3 gap-2 text-xs">
+                            <div>
+                              <p className="text-slate-400 mb-0.5">Ngân hàng</p>
+                              <p className="font-semibold text-slate-700">{p.bank_name}</p>
+                            </div>
+                            <div>
+                              <p className="text-slate-400 mb-0.5">Số tài khoản</p>
+                              <p className="font-semibold text-slate-700 font-mono">{p.bank_account}</p>
+                            </div>
+                            <div>
+                              <p className="text-slate-400 mb-0.5">Chủ TK</p>
+                              <p className="font-semibold text-slate-700">{p.account_holder}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              placeholder="Ghi chú (tuỳ chọn)"
+                              className="flex-1 text-xs border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-violet-400"
+                              onChange={e => setReviewNote(e.target.value)}
+                            />
+                            <button
+                              onClick={() => reviewPayout(p.id, 'approve')}
+                              className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-1.5 rounded-lg transition"
+                            >
+                              ✓ Duyệt
+                            </button>
+                            <button
+                              onClick={() => reviewPayout(p.id, 'reject')}
+                              className="bg-red-100 hover:bg-red-200 text-red-600 text-xs font-bold px-4 py-1.5 rounded-lg transition"
+                            >
+                              ✕ Từ chối
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* All payout history */}
+            <div>
+              <h3 className="text-sm font-bold text-slate-700 mb-3">Lịch sử yêu cầu rút ({affPayouts.length})</h3>
+              {affPayouts.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-8">Chưa có yêu cầu rút nào.</p>
+              ) : (
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                          <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Affiliate</th>
+                          <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Số tiền</th>
+                          <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden md:table-cell">Ngân hàng</th>
+                          <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden lg:table-cell">Ngày yêu cầu</th>
+                          <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Trạng thái</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {affPayouts.map(p => (
+                          <tr key={p.id} className="hover:bg-slate-50">
+                            <td className="px-4 py-3 text-sm text-slate-700">{p.affiliate_email}</td>
+                            <td className="px-4 py-3 text-sm font-bold text-slate-800">{p.total_amount.toLocaleString('vi-VN')}đ</td>
+                            <td className="px-4 py-3 text-xs text-slate-600 hidden md:table-cell">
+                              {p.bank_name} · <span className="font-mono">{p.bank_account}</span>
+                              <br />{p.account_holder}
+                            </td>
+                            <td className="px-4 py-3 text-xs text-slate-500 hidden lg:table-cell whitespace-nowrap">
+                              {new Date(p.created_at).toLocaleDateString('vi-VN')}
+                              {p.reviewed_at && <p className="text-slate-400">Duyệt: {new Date(p.reviewed_at).toLocaleDateString('vi-VN')}</p>}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-block text-xs font-bold px-2.5 py-1 rounded-full ${
+                                p.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                                p.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
+                                'bg-red-100 text-red-600'
+                              }`}>
+                                {p.status === 'pending' ? '⏳ Chờ duyệt' : p.status === 'approved' ? '✓ Đã duyệt' : '✕ Từ chối'}
+                              </span>
+                              {p.note && <p className="text-xs text-slate-400 mt-0.5">{p.note}</p>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* All commissions */}
+            <div>
+              <h3 className="text-sm font-bold text-slate-700 mb-3">Tất cả hoa hồng ({affCommissions.length})</h3>
+              {affCommissions.length === 0 ? (
+                <p className="text-sm text-slate-400 text-center py-8">Chưa có hoa hồng nào được tạo.</p>
+              ) : (
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-slate-50 border-b border-slate-100">
+                        <tr>
+                          <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">#</th>
+                          <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Affiliate</th>
+                          <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden md:table-cell">Người mua</th>
+                          <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Hoa hồng</th>
+                          <th className="text-left text-xs font-medium text-slate-500 px-4 py-3 hidden lg:table-cell">Ngày</th>
+                          <th className="text-left text-xs font-medium text-slate-500 px-4 py-3">Trạng thái</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {[...affCommissions].reverse().map(c => (
+                          <tr key={c.id} className="hover:bg-slate-50">
+                            <td className="px-4 py-3 text-xs text-slate-400">#{c.referral_number}</td>
+                            <td className="px-4 py-3 text-sm text-slate-700">{c.affiliate_email}</td>
+                            <td className="px-4 py-3 text-xs text-slate-500 hidden md:table-cell">{c.buyer_email}</td>
+                            <td className="px-4 py-3 text-sm font-bold text-emerald-700">+{c.commission_amount.toLocaleString('vi-VN')}đ</td>
+                            <td className="px-4 py-3 text-xs text-slate-500 hidden lg:table-cell whitespace-nowrap">
+                              {new Date(c.created_at).toLocaleDateString('vi-VN')}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${
+                                c.status === 'available' ? 'bg-amber-50 text-amber-700' :
+                                c.status === 'paid_out'  ? 'bg-emerald-50 text-emerald-700' :
+                                'bg-red-50 text-red-600'
+                              }`}>
+                                {c.status === 'available' ? 'Có thể rút' : c.status === 'paid_out' ? 'Đã trả' : 'Clawback'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>
