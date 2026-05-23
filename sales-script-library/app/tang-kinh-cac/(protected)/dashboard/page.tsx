@@ -46,6 +46,15 @@ export default async function TKCDashboard() {
             <span style={{ fontSize: '0.875rem', color: '#a09070' }}>
               Chào, <span style={{ color: '#FEF7E6' }}>{session.name}</span>
             </span>
+            {kqPaymentActive && (
+              <Link
+                href="/tang-kinh-cac/affiliate"
+                style={{ fontSize: '0.75rem', color: '#C9A961', textDecoration: 'none', fontWeight: 600 }}
+                className="hover:opacity-80 transition-opacity"
+              >
+                💰 Hoa hồng
+              </Link>
+            )}
             <Link
               href="/dashboard"
               style={{ fontSize: '0.75rem', color: '#a09070', textDecoration: 'none' }}
