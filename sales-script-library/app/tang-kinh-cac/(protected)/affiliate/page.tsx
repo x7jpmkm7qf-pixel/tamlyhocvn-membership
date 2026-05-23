@@ -46,29 +46,23 @@ export default async function AffiliatePage() {
             <span style={{ color: '#C9A961' }}>⚜</span>
             <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1rem', fontWeight: 700, color: '#FEF7E6' }}>Tàng Kinh Các</span>
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <span style={{ fontSize: '0.75rem', color: '#C9A961', fontWeight: 700 }}>💰 Hoa hồng</span>
-            <Link href="/dashboard" style={{ fontSize: '0.75rem', color: '#a09070', textDecoration: 'none' }}>
-              Library cũ →
-            </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
             <span style={{ fontSize: '0.875rem', color: '#a09070' }}>
-              Chào, <span style={{ color: '#FEF7E6' }}>{firstName}</span>
-              {isPaid && (
-                <span style={{
-                  marginLeft: '0.5rem',
-                  display: 'inline-block',
-                  fontSize: '0.65rem', fontWeight: 700,
-                  padding: '2px 8px',
-                  borderRadius: '999px',
-                  background: isPremium ? 'rgba(201,169,97,0.2)' : 'rgba(160,144,112,0.15)',
-                  border: `1px solid ${isPremium ? 'rgba(201,169,97,0.5)' : 'rgba(160,144,112,0.3)'}`,
-                  color: isPremium ? '#C9A961' : '#a09070',
-                  verticalAlign: 'middle',
-                }}>
-                  {isPremium ? '👑 Premium' : '🥉 Standard'}
-                </span>
-              )}
+              <span style={{ color: '#FEF7E6' }}>{firstName}</span>
             </span>
+            {isPaid && (
+              <span style={{
+                fontSize: '0.65rem', fontWeight: 700,
+                padding: '2px 8px',
+                borderRadius: '999px',
+                background: isPremium ? 'rgba(201,169,97,0.2)' : 'rgba(160,144,112,0.15)',
+                border: `1px solid ${isPremium ? 'rgba(201,169,97,0.5)' : 'rgba(160,144,112,0.3)'}`,
+                color: isPremium ? '#C9A961' : '#a09070',
+                whiteSpace: 'nowrap',
+              }}>
+                {isPremium ? '👑 Premium' : '🥉 Standard'}
+              </span>
+            )}
           </div>
         </div>
       </header>

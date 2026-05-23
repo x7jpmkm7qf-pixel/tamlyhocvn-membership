@@ -61,7 +61,7 @@ export default function AffiliateLinkCopyClient({ link }: { link: string }) {
 
   return (
     <>
-      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{
           flex: 1, background: '#040e1c', border: '1px solid rgba(201,169,97,0.2)',
           borderRadius: '0.5rem', padding: '0.625rem 0.875rem', fontFamily: 'monospace',
