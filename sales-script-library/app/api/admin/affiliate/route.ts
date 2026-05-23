@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
+import { getAdminSession } from '@/lib/auth'
 import {
   getCommissions,
   getPayoutRequests,
@@ -11,19 +11,9 @@ import {
 
 export const dynamic = 'force-dynamic'
 
-function isAdmin(): boolean {
-  try {
-    const store = cookies()
-    const raw = store.get('ssl_admin')?.value
-    return !!raw
-  } catch {
-    return false
-  }
-}
-
 // GET — return all payouts + commissions for admin
 export async function GET() {
-  if (!isAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!getAdminSession()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const [commissions, payouts] = await Promise.all([getCommissions(), getPayoutRequests()])
 
@@ -76,7 +66,7 @@ export async function GET() {
 
 // POST — approve or reject a payout request
 export async function POST(req: NextRequest) {
-  if (!isAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!getAdminSession()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json().catch(() => null)
   const id     = (body?.id || '').toString()

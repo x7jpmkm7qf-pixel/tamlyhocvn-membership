@@ -77,7 +77,9 @@ export async function savePayoutRequests(requests: PayoutRequest[]): Promise<voi
 }
 
 export function generateAffiliateCode(name: string): string {
-  const prefix = name.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4).padEnd(4, 'X')
+  // Normalize: "Hán Văn Sơn" → "Han Van Son" → "HANV"
+  const normalized = name.normalize('NFD').replace(/[̀-ͯ]/g, '')
+  const prefix = normalized.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4).padEnd(4, 'X')
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   const bytes = crypto.randomBytes(4)
   const suffix = Array.from(bytes).map(b => chars[b % chars.length]).join('')
