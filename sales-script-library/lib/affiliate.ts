@@ -60,6 +60,32 @@ async function rset(key: string, value: unknown): Promise<void> {
   await redisExec(['SET', key, JSON.stringify(value)])
 }
 
+async function rhincrby(key: string, field: string, by = 1): Promise<void> {
+  await redisExec(['HINCRBY', key, field, by])
+}
+
+async function rhgetall(key: string): Promise<Record<string, string> | null> {
+  const result = await redisExec(['HGETALL', key])
+  if (!result || !Array.isArray(result) || result.length === 0) return null
+  const obj: Record<string, string> = {}
+  for (let i = 0; i < result.length; i += 2) obj[result[i]] = result[i + 1]
+  return obj
+}
+
+export async function trackAffiliateClick(code: string): Promise<void> {
+  const today = new Date().toISOString().slice(0, 10)
+  await rhincrby(`msl:aff_clicks:${code.toUpperCase()}`, today).catch(() => {})
+}
+
+export async function getClickCount30d(code: string): Promise<number> {
+  const hash = await rhgetall(`msl:aff_clicks:${code.toUpperCase()}`)
+  if (!hash) return 0
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  return Object.entries(hash)
+    .filter(([day]) => day >= cutoff)
+    .reduce((sum, [, count]) => sum + parseInt(count, 10), 0)
+}
+
 export async function getCommissions(): Promise<Commission[]> {
   return (await rget<Commission[]>(COMMISSIONS_KEY)) || []
 }

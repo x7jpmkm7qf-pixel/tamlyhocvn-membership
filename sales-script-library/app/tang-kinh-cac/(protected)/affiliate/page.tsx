@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { getMemberSession } from '@/lib/auth'
 import { getMember } from '@/lib/data'
-import { ensureAffiliateCode, getAffiliateStats } from '@/lib/affiliate'
+import { ensureAffiliateCode, getAffiliateStats, getClickCount30d } from '@/lib/affiliate'
 import AffiliatePayoutForm from './AffiliatePayoutForm'
 import AffiliateLinkCopyClient from './AffiliateLinkCopyClient'
+import AffiliateProgressBar from './AffiliateProgressBar'
+import AffiliateResourceTabs from './AffiliateResourceTabs'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,9 +26,15 @@ export default async function AffiliatePage() {
   const isPaid = member?.enrollments?.['khau-quyet']?.status === 'active' || member?.status === 'active'
 
   const affCode = isPaid ? await ensureAffiliateCode(session.email) : (member?.affiliate_code ?? null)
-  const stats = affCode ? await getAffiliateStats(session.email) : null
+  const [stats, clickCount] = await Promise.all([
+    affCode ? getAffiliateStats(session.email) : Promise.resolve(null),
+    affCode ? getClickCount30d(affCode) : Promise.resolve(0),
+  ])
 
   const affLink = affCode ? `${BASE_URL}/r/${affCode}` : null
+  const totalReferrals = stats?.totalReferrals ?? 0
+  const isPremium = totalReferrals >= 30
+  const firstName = session.name.split(' ').pop()
 
   return (
     <div className="min-h-screen" style={{ background: '#091b30' }}>
@@ -44,7 +52,22 @@ export default async function AffiliatePage() {
               Library cũ →
             </Link>
             <span style={{ fontSize: '0.875rem', color: '#a09070' }}>
-              Chào, <span style={{ color: '#FEF7E6' }}>{session.name.split(' ').pop()}</span>
+              Chào, <span style={{ color: '#FEF7E6' }}>{firstName}</span>
+              {isPaid && (
+                <span style={{
+                  marginLeft: '0.5rem',
+                  display: 'inline-block',
+                  fontSize: '0.65rem', fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  background: isPremium ? 'rgba(201,169,97,0.2)' : 'rgba(160,144,112,0.15)',
+                  border: `1px solid ${isPremium ? 'rgba(201,169,97,0.5)' : 'rgba(160,144,112,0.3)'}`,
+                  color: isPremium ? '#C9A961' : '#a09070',
+                  verticalAlign: 'middle',
+                }}>
+                  {isPremium ? '👑 Premium' : '🥉 Standard'}
+                </span>
+              )}
             </span>
           </div>
         </div>
@@ -76,10 +99,10 @@ export default async function AffiliatePage() {
         ) : (
           <>
             {/* Commission tiers */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
               {[
-                { label: 'Giới thiệu 1–29 người', rate: '101.000đ/đơn', active: (stats?.totalReferrals ?? 0) < 30 },
-                { label: 'Giới thiệu từ 30 người', rate: '150.000đ/đơn', active: (stats?.totalReferrals ?? 0) >= 30 },
+                { label: 'Giới thiệu 1–29 người', rate: '101.000đ/đơn', active: !isPremium },
+                { label: 'Giới thiệu từ 30 người', rate: '150.000đ/đơn', active: isPremium },
               ].map(tier => (
                 <div key={tier.label} style={{ background: tier.active ? 'rgba(201,169,97,0.12)' : '#0a1e35', border: `1px solid ${tier.active ? 'rgba(201,169,97,0.5)' : 'rgba(201,169,97,0.15)'}`, borderRadius: '0.75rem', padding: '1rem' }}>
                   <div style={{ fontSize: '0.75rem', color: '#a09070', marginBottom: '0.25rem' }}>{tier.label}</div>
@@ -89,17 +112,22 @@ export default async function AffiliatePage() {
               ))}
             </div>
 
-            {/* Stats row */}
+            {/* Progress bar — mục 1 */}
+            <AffiliateProgressBar current={totalReferrals} />
+
+            {/* Stats 4 cols — mục 2 */}
             {stats && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
                 {[
-                  { label: 'Đã giới thiệu', value: `${stats.totalReferrals} người` },
-                  { label: 'Tổng đã kiếm',  value: fmt(stats.totalEarned) },
-                  { label: 'Có thể rút',    value: fmt(stats.availableTotal), gold: true },
+                  { label: 'Lượt click 30 ngày', value: `${clickCount} lượt`, icon: '👀' },
+                  { label: 'Đã giới thiệu', value: `${totalReferrals} người`, icon: '👥' },
+                  { label: 'Tổng đã kiếm', value: fmt(stats.totalEarned), icon: '💰' },
+                  { label: 'Có thể rút', value: fmt(stats.availableTotal), icon: '🏆', gold: true },
                 ].map(s => (
                   <div key={s.label} style={{ background: '#0f2744', border: '1px solid rgba(201,169,97,0.15)', borderRadius: '0.75rem', padding: '1rem', textAlign: 'center' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#a09070', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.375rem' }}>{s.label}</div>
-                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.25rem', fontWeight: 700, color: s.gold ? '#C9A961' : '#FEF7E6' }}>{s.value}</div>
+                    <div style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>{s.icon}</div>
+                    <div style={{ fontSize: '0.65rem', color: '#a09070', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.375rem' }}>{s.label}</div>
+                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.125rem', fontWeight: 700, color: s.gold ? '#C9A961' : '#FEF7E6' }}>{s.value}</div>
                   </div>
                 ))}
               </div>
@@ -174,6 +202,9 @@ export default async function AffiliatePage() {
                 </div>
               </div>
             )}
+
+            {/* Resource tabs — mục 4 */}
+            {affLink && <AffiliateResourceTabs affLink={affLink} />}
           </>
         )}
 

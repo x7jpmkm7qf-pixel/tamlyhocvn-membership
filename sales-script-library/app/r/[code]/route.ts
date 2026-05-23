@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { trackAffiliateClick } from '@/lib/affiliate'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,6 +15,8 @@ export async function GET(req: NextRequest, { params }: { params: { code: string
     maxAge: 60 * 60 * 24 * 30,
     path: '/',
   })
+
+  trackAffiliateClick(code).catch(() => {})
 
   return response
 }

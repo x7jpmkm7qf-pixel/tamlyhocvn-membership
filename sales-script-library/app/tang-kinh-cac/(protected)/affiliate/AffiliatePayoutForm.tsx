@@ -49,25 +49,31 @@ export default function AffiliatePayoutForm({ availableTotal, minWithdrawal }: P
   }
 
   if (!open) {
+    if (!canWithdraw) {
+      return (
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', gap: '0.625rem',
+          background: 'rgba(201,169,97,0.06)', border: '1px solid rgba(201,169,97,0.15)',
+          borderRadius: '0.75rem', padding: '1rem 1.125rem',
+        }}>
+          <span style={{ fontSize: '1rem', flexShrink: 0 }}>💡</span>
+          <p style={{ color: muted, fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>
+            Cần đủ <span style={{ color: '#FEF7E6', fontWeight: 700 }}>{minWithdrawal.toLocaleString('vi-VN')}đ</span> trong ví để rút.
+            Hãy bắt đầu giới thiệu để kiếm hoa hồng!
+          </p>
+        </div>
+      )
+    }
     return (
       <button
-        onClick={() => canWithdraw && setOpen(true)}
-        disabled={!canWithdraw}
+        onClick={() => setOpen(true)}
         style={{
-          background: canWithdraw ? gold : 'rgba(201,169,97,0.2)',
-          color: canWithdraw ? dark : muted,
-          fontWeight: 700,
-          fontSize: '0.9375rem',
-          padding: '0.75rem 2rem',
-          borderRadius: '0.5rem',
-          border: 'none',
-          cursor: canWithdraw ? 'pointer' : 'not-allowed',
-          width: '100%',
+          background: gold, color: dark, fontWeight: 700, fontSize: '0.9375rem',
+          padding: '0.875rem 2rem', borderRadius: '0.5rem', border: 'none',
+          cursor: 'pointer', width: '100%',
         }}
       >
-        {canWithdraw
-          ? `Rút ${availableTotal.toLocaleString('vi-VN')}đ →`
-          : `Cần tối thiểu ${minWithdrawal.toLocaleString('vi-VN')}đ để rút`}
+        💰 Rút {availableTotal.toLocaleString('vi-VN')}đ ngay
       </button>
     )
   }
