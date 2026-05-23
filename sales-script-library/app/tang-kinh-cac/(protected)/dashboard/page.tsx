@@ -225,6 +225,19 @@ export default async function TKCDashboard() {
           </section>
         )}
 
+        {/* Affiliate banner — only show for paid members */}
+        {kqPaymentActive && (
+          <Link href="/tang-kinh-cac/affiliate" style={{ textDecoration: 'none', display: 'block', marginTop: '1rem' }}>
+            <div style={{ background: 'rgba(201,169,97,0.06)', border: '1px solid rgba(201,169,97,0.2)', borderRadius: '0.75rem', padding: '1rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+              <div>
+                <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#FEF7E6', marginBottom: '0.125rem' }}>💰 Giới thiệu, nhận hoa hồng</div>
+                <div style={{ fontSize: '0.8125rem', color: '#a09070' }}>101.000đ–150.000đ mỗi đơn bạn giới thiệu thành công</div>
+              </div>
+              <span style={{ color: '#C9A961', fontSize: '0.875rem', fontWeight: 700, flexShrink: 0 }}>Xem ngay →</span>
+            </div>
+          </Link>
+        )}
+
         {/* Footer nav */}
         <div style={{ marginTop: '3rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(201,169,97,0.1)', display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           <Link href="/dashboard" style={{ fontSize: '0.8125rem', color: '#a09070', textDecoration: 'none' }}>
@@ -233,6 +246,11 @@ export default async function TKCDashboard() {
           <Link href="/ban-do" style={{ fontSize: '0.8125rem', color: '#a09070', textDecoration: 'none' }}>
             Bản Đồ 4 Loại Khách Hàng
           </Link>
+          {kqPaymentActive && (
+            <Link href="/tang-kinh-cac/affiliate" style={{ fontSize: '0.8125rem', color: '#a09070', textDecoration: 'none' }}>
+              Chương trình giới thiệu
+            </Link>
+          )}
         </div>
       </main>
     </div>

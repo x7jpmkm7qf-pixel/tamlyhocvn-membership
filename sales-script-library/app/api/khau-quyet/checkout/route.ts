@@ -64,16 +64,24 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null)
   const name  = (body?.name  || '').toString().trim()
   const email = (body?.email || '').toString().trim().toLowerCase()
+  const rawPhone = (body?.phone || '').toString().trim()
 
   if (!name)  return NextResponse.json({ error: 'Vui lòng nhập họ tên' }, { status: 400 })
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: 'Email không hợp lệ' }, { status: 400 })
   }
+  if (!rawPhone || !/^(0|\+84)[0-9]{9,10}$/.test(rawPhone)) {
+    return NextResponse.json({ error: 'Số điện thoại không hợp lệ' }, { status: 400 })
+  }
+  // Normalize: +84xxx → 0xxx
+  const phone = rawPhone.startsWith('+84') ? '0' + rawPhone.slice(3) : rawPhone
 
   const existing = await getMember(email)
   if (existing) {
     return NextResponse.json({ emailExists: true }, { status: 409 })
   }
+
+  const affCode = req.cookies.get('aff_code')?.value?.toUpperCase() || undefined
 
   const plainPassword = generateSecurePassword()
   const now = new Date().toISOString()
@@ -82,10 +90,12 @@ export async function POST(req: NextRequest) {
     id: crypto.randomUUID(),
     name,
     email,
+    phone,
     password: await hashPassword(plainPassword),
     status: 'pending',
     createdAt: now,
     product: 'khauquyet',
+    referred_by_code: affCode,
     enrollments: {
       'khau-quyet': {
         status: 'pending',
@@ -101,7 +111,7 @@ export async function POST(req: NextRequest) {
   Promise.all([
     sendKhauQuyetWelcome({ to: email, name, password: plainPassword })
       .catch(e => console.error('[kq-checkout] welcome email failed:', e)),
-    notifyNewRegistration({ name, email })
+    notifyNewRegistration({ name, email, phone })
       .catch(e => console.error('[kq-checkout] telegram notify failed:', e)),
   ])
 

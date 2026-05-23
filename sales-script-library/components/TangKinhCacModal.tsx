@@ -1,13 +1,16 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 const ZALO_GROUP_LINK = 'https://zalo.me/g/iaa5rn07vkurgl1tiana'
 const STORAGE_KEY = 'tangKinhCac_modal_seen_v1'
 
 export default function TangKinhCacModal() {
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
+    if (pathname?.startsWith('/tang-kinh-cac')) return
     const seen = localStorage.getItem(STORAGE_KEY)
     if (seen) return
 
@@ -20,7 +23,7 @@ export default function TangKinhCacModal() {
         }
       })
       .catch(() => {})
-  }, [])
+  }, [pathname])
 
   const handleClose = () => {
     localStorage.setItem(STORAGE_KEY, '1')
@@ -33,7 +36,7 @@ export default function TangKinhCacModal() {
     setOpen(false)
   }
 
-  if (!open) return null
+  if (!open || pathname?.startsWith('/tang-kinh-cac')) return null
 
   return (
     <div

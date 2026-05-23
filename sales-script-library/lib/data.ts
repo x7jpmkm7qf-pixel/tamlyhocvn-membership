@@ -56,6 +56,11 @@ export interface Member {
   product?: 'khauquyet' | 'membership'
   // Per-product enrollment tracking (added 2026-05-17)
   enrollments?: Record<string, ProductEnrollment>
+  // Affiliate system
+  affiliate_code?: string
+  referred_by_code?: string
+  total_successful_referrals?: number
+  is_affiliate_blocked?: boolean
 }
 
 // ── File-based storage (read-only, for static content) ─────────────────────

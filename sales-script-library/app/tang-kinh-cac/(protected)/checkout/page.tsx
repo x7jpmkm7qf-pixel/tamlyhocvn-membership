@@ -6,6 +6,30 @@ import TKCCheckoutClient from './TKCCheckoutClient'
 
 export const dynamic = 'force-dynamic'
 
+const BANK_CODE    = process.env.NEXT_PUBLIC_BANK_CODE    || 'MB'
+const BANK_ACCOUNT = process.env.NEXT_PUBLIC_BANK_ACCOUNT || '0984899999'
+const BANK_NAME    = process.env.NEXT_PUBLIC_BANK_NAME    || 'HAN VAN SON'
+const AMOUNT       = 199000
+const PREFIX       = 'KQ'
+
+function normalizeEmail(email: string) {
+  return email.toLowerCase().replace(/[@.]/g, '')
+}
+
+async function fetchQrAsBase64(email: string): Promise<string | null> {
+  const addInfo = `${PREFIX} ${normalizeEmail(email)}`
+  const params = new URLSearchParams({ amount: String(AMOUNT), addInfo, accountName: BANK_NAME })
+  const url = `https://img.vietqr.io/image/${BANK_CODE}-${BANK_ACCOUNT}-compact2.jpg?${params}`
+  try {
+    const res = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(4000) })
+    if (!res.ok) return null
+    const buf = await res.arrayBuffer()
+    return `data:image/jpeg;base64,${Buffer.from(buf).toString('base64')}`
+  } catch {
+    return null
+  }
+}
+
 export default async function TKCCheckoutPage() {
   const session = getMemberSession()
   if (!session) redirect('/tang-kinh-cac/login')
@@ -20,21 +44,23 @@ export default async function TKCCheckoutPage() {
     redirect('/tang-kinh-cac/dashboard')
   }
 
-  // Always refresh enrolledAt = now so check-status only matches transactions
-  // that happened during THIS checkout session (not old test transactions).
-  if (!kqEnrollment || kqEnrollment.status === 'pending') {
-    await saveMember({
-      ...member,
-      enrollments: {
-        ...member.enrollments,
-        'khau-quyet': {
-          status: 'pending',
-          enrolledAt: new Date().toISOString(),
-          source: 'paid',
-        },
-      },
-    })
-  }
+  // Refresh enrolledAt + pre-fetch QR in parallel
+  const [, qrDataUrl] = await Promise.all([
+    (!kqEnrollment || kqEnrollment.status === 'pending')
+      ? saveMember({
+          ...member,
+          enrollments: {
+            ...member.enrollments,
+            'khau-quyet': {
+              status: 'pending',
+              enrolledAt: new Date().toISOString(),
+              source: 'paid',
+            },
+          },
+        })
+      : Promise.resolve(),
+    fetchQrAsBase64(session.email),
+  ])
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #040e1c 0%, #091b30 60%, #0f2744 100%)' }}>
@@ -73,7 +99,7 @@ export default async function TKCCheckoutPage() {
 
         {/* Payment card */}
         <div style={{ background: '#0f2744', border: '1px solid rgba(201,169,97,0.2)', borderRadius: '0.875rem', padding: '1.5rem' }}>
-          <TKCCheckoutClient email={session.email} name={session.name} />
+          <TKCCheckoutClient email={session.email} name={session.name} qrDataUrl={qrDataUrl} />
         </div>
 
         {/* Trust badges */}

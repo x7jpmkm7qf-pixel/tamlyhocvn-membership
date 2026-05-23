@@ -1,13 +1,16 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 const ZALO_GROUP_LINK = 'https://zalo.me/g/iaa5rn07vkurgl1tiana'
 const STORAGE_KEY = 'tangKinhCac_banner_dismissed_v1'
 
 export default function TangKinhCacBanner() {
+  const pathname = usePathname()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
+    if (pathname?.startsWith('/tang-kinh-cac')) return
     const dismissed = localStorage.getItem(STORAGE_KEY)
     if (dismissed) return
 
@@ -17,9 +20,9 @@ export default function TangKinhCacBanner() {
         if (data?.member) setVisible(true)
       })
       .catch(() => {})
-  }, [])
+  }, [pathname])
 
-  if (!visible) return null
+  if (!visible || pathname?.startsWith('/tang-kinh-cac')) return null
 
   const handleDismiss = () => {
     localStorage.setItem(STORAGE_KEY, '1')

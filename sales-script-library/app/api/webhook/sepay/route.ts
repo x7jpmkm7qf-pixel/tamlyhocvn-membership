@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { getMembers, saveMember } from '@/lib/data'
+import { ensureAffiliateCode, getMemberByAffCode, createCommission } from '@/lib/affiliate'
 import { notifyPaymentConfirmed } from '@/lib/telegram'
 import { sendPurchaseEvent } from '@/lib/fb-capi'
 import { sendTikTokPurchaseEvent } from '@/lib/tiktok-events-api'
@@ -196,6 +197,26 @@ export async function POST(req: NextRequest) {
                      : action === 'noimon-upgrade' ? 'Nâng cấp Nội Môn'
                      : 'Kích hoạt Khẩu Quyết'
     console.log(`[SePay] ✅ ${actionLabel}:`, email)
+
+    // ── Affiliate: generate code for new member + create commission ──
+    if (action === 'ngoaimon-activate') {
+      Promise.all([
+        ensureAffiliateCode(updated.email)
+          .catch(e => console.error('[SePay] affiliate code gen failed:', e)),
+        (async () => {
+          const refCode = member.referred_by_code
+          if (!refCode) return
+          const referrer = await getMemberByAffCode(refCode)
+          if (!referrer) return
+          await createCommission({
+            affiliate_email: referrer.email,
+            buyer_email:     updated.email,
+            order_reference_code: payload.referenceCode,
+            order_amount: payload.transferAmount,
+          }).catch(e => console.error('[SePay] commission creation failed:', e))
+        })(),
+      ])
+    }
 
     // ── 7. Gửi thông báo Telegram ─────────────────────────────
     const notifySuffix = action === 'noimon-direct' ? ' (NỘI MÔN TRỌN GÓI)'

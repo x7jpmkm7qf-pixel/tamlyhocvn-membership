@@ -7,6 +7,7 @@ import TKCWelcomeDialog from '@/components/TKCWelcomeDialog'
 import KQUpsellStickyBar from '@/components/KQUpsellStickyBar'
 import KQUpsellSidebarCard from '@/components/KQUpsellSidebarCard'
 import KQUpsellInlineCard from '@/components/KQUpsellInlineCard'
+import ZaloGroupButton from '@/components/ZaloGroupButton'
 import '@/styles/tang-kinh-cac.css'
 
 export const dynamic = 'force-dynamic'
@@ -301,6 +302,11 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
 
       {/* Layer 1: Sticky bottom upsell bar */}
       {showUpsell && <KQUpsellStickyBar chapterIndex={currentIdx} />}
+
+      {/* Zalo group floating button — khau-quyet course only */}
+      {params.slug === 'khau-quyet' && (
+        <ZaloGroupButton chapterId={chapter.id} slug={params.slug} />
+      )}
 
       <style>{`
         @media (min-width: 768px) {

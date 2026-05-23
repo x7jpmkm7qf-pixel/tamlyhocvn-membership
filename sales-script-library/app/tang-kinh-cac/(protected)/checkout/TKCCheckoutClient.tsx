@@ -5,10 +5,9 @@ import Link from 'next/link'
 
 const BANK = {
   code:    process.env.NEXT_PUBLIC_BANK_CODE    || 'MB',
-  account: process.env.NEXT_PUBLIC_BANK_ACCOUNT || '',
+  account: process.env.NEXT_PUBLIC_BANK_ACCOUNT || '0984899999',
   name:    process.env.NEXT_PUBLIC_BANK_NAME    || 'HAN VAN SON',
 }
-const BANK_CONFIGURED = BANK.account.length > 0
 
 const AMOUNT = 199000
 const AMOUNT_LABEL = '199.000đ'
@@ -24,26 +23,28 @@ function getVietQR(content: string) {
   return `https://img.vietqr.io/image/${BANK.code}-${BANK.account}-compact2.jpg?${p}`
 }
 
-export default function TKCCheckoutClient({ email, name }: { email: string; name: string }) {
+export default function TKCCheckoutClient({ email, name, qrDataUrl }: { email: string; name: string; qrDataUrl?: string | null }) {
   const router = useRouter()
   const emailNorm = normalizeEmail(email)
   const transferContent = `${PREFIX} ${emailNorm}`
   const qrUrl = getVietQR(transferContent)
 
-  const [qrLoaded, setQrLoaded]       = useState(false)
+  // If server pre-fetched the QR, start already loaded; otherwise wait for client preload
+  const [qrLoaded, setQrLoaded]       = useState(!!qrDataUrl)
   const [status, setStatus]           = useState<'waiting' | 'success' | 'already_owned'>('waiting')
   const [countdown, setCountdown]     = useState(3)
   const [pollCount, setPollCount]     = useState(0)
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Preload QR image
+  // Client-side preload fallback (only when server fetch failed)
   useEffect(() => {
+    if (qrDataUrl) return
     const img = new Image()
     img.onload  = () => setQrLoaded(true)
     img.onerror = () => setQrLoaded(true)
     img.src = qrUrl
-  }, [qrUrl])
+  }, [qrUrl, qrDataUrl])
 
   // Polling check-status
   useEffect(() => {
@@ -137,14 +138,9 @@ export default function TKCCheckoutClient({ email, name }: { email: string; name
           Quét QR bằng app ngân hàng bất kỳ
         </p>
         <div style={{ display: 'inline-block', borderRadius: '0.75rem', overflow: 'hidden', border: '2px solid rgba(201,169,97,0.4)', boxShadow: '0 0 24px rgba(201,169,97,0.15)' }}>
-          {!BANK_CONFIGURED ? (
-            <div style={{ width: 220, height: 220, background: '#040e1c', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '1rem' }}>
-              <div style={{ fontSize: '1.5rem' }}>🔧</div>
-              <div style={{ fontSize: '0.7rem', color: '#a09070', textAlign: 'center', lineHeight: 1.4 }}>QR khả dụng trên production</div>
-            </div>
-          ) : qrLoaded ? (
+          {qrLoaded ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={qrUrl} alt="QR chuyển khoản" width={220} height={220} style={{ display: 'block' }} />
+            <img src={qrDataUrl ?? qrUrl} alt="QR chuyển khoản" width={220} height={220} style={{ display: 'block' }} />
           ) : (
             <div style={{ width: 220, height: 220, background: '#040e1c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ width: 32, height: 32, border: '2px solid #C9A961', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />

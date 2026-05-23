@@ -6,5 +6,11 @@ export default async function TangKinhCacLayout({ children }: { children: React.
   if (!session) {
     redirect('/tang-kinh-cac/login')
   }
-  return <>{children}</>
+  return (
+    <>
+      {/* Override global light body background immediately — prevents FOUC on dark reader */}
+      <style dangerouslySetInnerHTML={{ __html: 'body{background:#091b30!important;background-image:none!important;color:#FEF7E6!important}' }} />
+      {children}
+    </>
+  )
 }
