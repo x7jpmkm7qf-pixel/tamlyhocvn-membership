@@ -38,9 +38,15 @@ export default async function AffiliatePage() {
             <span style={{ color: '#C9A961' }}>⚜</span>
             <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1rem', fontWeight: 700, color: '#FEF7E6' }}>Tàng Kinh Các</span>
           </Link>
-          <span style={{ fontSize: '0.75rem', color: '#a09070' }}>
-            Chào, <span style={{ color: '#FEF7E6' }}>{session.name.split(' ').pop()}</span>
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ fontSize: '0.75rem', color: '#C9A961', fontWeight: 700 }}>💰 Hoa hồng</span>
+            <Link href="/dashboard" style={{ fontSize: '0.75rem', color: '#a09070', textDecoration: 'none' }}>
+              Library cũ →
+            </Link>
+            <span style={{ fontSize: '0.875rem', color: '#a09070' }}>
+              Chào, <span style={{ color: '#FEF7E6' }}>{session.name.split(' ').pop()}</span>
+            </span>
+          </div>
         </div>
       </header>
 
