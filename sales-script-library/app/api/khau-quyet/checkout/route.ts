@@ -80,14 +80,16 @@ export async function POST(req: NextRequest) {
   const affCode = req.cookies.get('aff_code')?.value?.toUpperCase() || undefined
   if (existing) {
     // Backfill referred_by_code for existing members who came via a referral link.
-    // The cookie is present but the 409 path previously discarded it entirely.
+    // MUST await — function exits immediately on 409, fire-and-forget write never completes.
     if (affCode && !existing.referred_by_code) {
-      saveMember({ ...existing, referred_by_code: affCode }).catch(e =>
+      await saveMember({ ...existing, referred_by_code: affCode }).catch(e =>
         console.error('[kq-checkout] failed to backfill referred_by_code:', e)
       )
+      console.log('[kq-checkout] backfilled referred_by_code', affCode, 'for', email)
     }
     return NextResponse.json({ emailExists: true }, { status: 409 })
   }
+  console.log('[kq-checkout] new member, aff_code cookie:', affCode || 'none')
 
   const plainPassword = generateSecurePassword()
   const now = new Date().toISOString()

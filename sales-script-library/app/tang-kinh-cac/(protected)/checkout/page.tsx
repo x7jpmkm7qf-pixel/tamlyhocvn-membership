@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import { getMemberSession } from '@/lib/auth'
 import { getMember, saveMember } from '@/lib/data'
 import TKCCheckoutClient from './TKCCheckoutClient'
@@ -36,6 +37,17 @@ export default async function TKCCheckoutPage() {
 
   const member = await getMember(session.email)
   if (!member) redirect('/tang-kinh-cac/login')
+
+  // Safety net: backfill referred_by_code if user logged in directly via referral link
+  // (bypassing the checkout form, which is where backfill normally happens)
+  const cookieStore = cookies()
+  const affCode = cookieStore.get('aff_code')?.value?.toUpperCase()
+  if (affCode && !member.referred_by_code) {
+    await saveMember({ ...member, referred_by_code: affCode }).catch(e =>
+      console.error('[tkc-checkout] failed to backfill referred_by_code:', e)
+    )
+    console.log('[tkc-checkout] backfilled referred_by_code', affCode, 'for', session.email)
+  }
 
   const kqEnrollment = member.enrollments?.['khau-quyet']
 
