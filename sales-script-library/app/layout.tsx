@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import ChatWidget from '@/components/ChatWidget'
 import MetaPixel from '@/components/MetaPixel'
 import TikTokPixel from '@/components/TikTokPixel'
 import TangKinhCacBanner from '@/components/TangKinhCacBanner'
@@ -22,7 +21,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <TangKinhCacBanner />
           {children}
           <TangKinhCacModal />
-          <ChatWidget />
         </PHProvider>
       </body>
     </html>
