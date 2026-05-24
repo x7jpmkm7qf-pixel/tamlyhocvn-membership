@@ -12,12 +12,13 @@ export default function AffiliateProgressBar({ current }: { current: number }) {
   useEffect(() => {
     if (!barRef.current) return
     barRef.current.style.width = '0%'
-    const id = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+    let inner: number
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => {
         if (barRef.current) barRef.current.style.width = `${pct}%`
       })
     })
-    return () => cancelAnimationFrame(id)
+    return () => { cancelAnimationFrame(outer); cancelAnimationFrame(inner) }
   }, [pct])
 
   if (isPremium) {
