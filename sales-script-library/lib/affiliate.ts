@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { unstable_cache } from 'next/cache'
 import { getMember, getMembers, saveMember } from './data'
 
 const REDIS_URL   = process.env.UPSTASH_REDIS_REST_URL
@@ -271,3 +272,26 @@ export async function createPayoutRequest({
 
   return { ok: true, request }
 }
+
+export async function getActiveAffiliatesCount(): Promise<number> {
+  const commissions = await getCommissions()
+  const set = new Set(
+    commissions
+      .filter(c => c.status === 'available' || c.status === 'paid_out')
+      .map(c => c.affiliate_email)
+  )
+  return set.size
+}
+
+// Cached wrappers — 5-minute TTL, shared across chapter navigations
+export const getCachedAffiliateStats = unstable_cache(
+  getAffiliateStats,
+  ['aff-stats'],
+  { revalidate: 300 }
+)
+
+export const getCachedActiveAffiliatesCount = unstable_cache(
+  getActiveAffiliatesCount,
+  ['aff-active-count'],
+  { revalidate: 300 }
+)

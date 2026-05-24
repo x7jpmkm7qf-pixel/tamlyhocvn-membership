@@ -3,11 +3,16 @@ import Link from 'next/link'
 import { getMemberSession } from '@/lib/auth'
 import { getMember } from '@/lib/data'
 import { getCourseBySlug, getCourseContent, getEnrollment, enrollUser, markChapterRead } from '@/lib/courses'
+import { getCachedAffiliateStats, getCachedActiveAffiliatesCount } from '@/lib/affiliate'
 import TKCWelcomeDialog from '@/components/TKCWelcomeDialog'
 import KQUpsellStickyBar from '@/components/KQUpsellStickyBar'
 import KQUpsellSidebarCard from '@/components/KQUpsellSidebarCard'
 import KQUpsellInlineCard from '@/components/KQUpsellInlineCard'
 import ZaloGroupButton from '@/components/ZaloGroupButton'
+import AffiliateWidget from '@/components/AffiliateWidget'
+import AffiliateFloatButton from '@/components/AffiliateFloatButton'
+import AffiliateAhaBanner from '@/components/AffiliateAhaBanner'
+import AffiliateCopyToast from '@/components/AffiliateCopyToast'
 import '@/styles/tang-kinh-cac.css'
 
 export const dynamic = 'force-dynamic'
@@ -34,18 +39,18 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
     enrollment = await enrollUser(session.id, course.id)
   }
 
-  // KQ upsell: check payment enrollment only for the free ban-do course
+  // Fetch member once — used for ban-do upsell check, paywall, and affiliate widgets
   const isBanDo = params.slug === 'ban-do'
-  let kqActive = true // default: hide upsell
-  if (isBanDo) {
-    const member = await getMember(session.email)
-    kqActive = member?.enrollments?.['khau-quyet']?.status === 'active'
-  }
+  const isKQ    = params.slug === 'khau-quyet'
+  const needsMember = isBanDo || course.price > 0
+  const member = needsMember ? await getMember(session.email) : null
+
+  // KQ upsell: check payment enrollment only for the free ban-do course
+  const kqActive = isBanDo ? member?.enrollments?.['khau-quyet']?.status === 'active' : true
 
   // Paywall: paid chapter on a paid course requires active payment enrollment
   const isPaidChapter = course.price > 0 && chapter.preview === false
   if (isPaidChapter) {
-    const member = await getMember(session.email)
     const paymentEnrollment = member?.enrollments?.[course.id]
     if (paymentEnrollment?.status !== 'active') {
       // Show paywall — teaser of title + lock UI
@@ -108,6 +113,17 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
 
   // Show KQ upsell layers from chapter index 2 onwards for non-KQ members on ban-do
   const showUpsell = isBanDo && !kqActive && currentIdx >= 2
+
+  // Affiliate data — only for khau-quyet paid pages (cached 5 min)
+  const affCode = isKQ ? (member?.affiliate_code ?? null) : null
+  const [affStats, totalActiveAffiliates] = isKQ
+    ? await Promise.all([
+        affCode ? getCachedAffiliateStats(session.email) : Promise.resolve(null),
+        getCachedActiveAffiliatesCount(),
+      ])
+    : [null, 0]
+  const availableTotal = affStats?.availableTotal ?? 0
+  const showAffiliateWidget = isKQ && !!affCode
 
   return (
     <div style={{ minHeight: '100vh', background: '#091b30', display: 'flex', flexDirection: 'column' }}>
@@ -192,6 +208,9 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
 
           {/* Layer 2: Sidebar CTA card — desktop only, from ch ≥ 2 */}
           {showUpsell && <KQUpsellSidebarCard />}
+
+          {/* Affiliate widget — desktop sidebar, paid KQ members */}
+          {showAffiliateWidget && <AffiliateWidget availableTotal={availableTotal} />}
         </aside>
 
         {/* Main content */}
@@ -210,6 +229,16 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
             )}
             {showUpsell && currentIdx === 7 && (
               <KQUpsellInlineCard variant="final-peak" />
+            )}
+
+            {/* Affiliate aha banner — scroll 85% trigger, khau-quyet only */}
+            {isKQ && (
+              <AffiliateAhaBanner
+                chapterTitle={chapter.chapterTitle}
+                chapterId={chapter.id}
+                totalActiveAffiliates={totalActiveAffiliates}
+                chaptersReadCount={chaptersRead.size}
+              />
             )}
 
             {/* Chapter navigation */}
@@ -301,9 +330,15 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
       {showUpsell && <KQUpsellStickyBar chapterIndex={currentIdx} />}
 
       {/* Zalo group floating button — khau-quyet course only */}
-      {params.slug === 'khau-quyet' && (
-        <ZaloGroupButton chapterId={chapter.id} slug={params.slug} />
+      {isKQ && <ZaloGroupButton chapterId={chapter.id} slug={params.slug} />}
+
+      {/* Affiliate float button — mobile only, paid KQ members */}
+      {isKQ && showAffiliateWidget && (
+        <AffiliateFloatButton chapterId={chapter.id} slug={params.slug} />
       )}
+
+      {/* Copy detector toast — khau-quyet only */}
+      {isKQ && <AffiliateCopyToast chapterId={chapter.id} />}
 
       <style>{`
         @media (min-width: 768px) {
