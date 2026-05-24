@@ -25,15 +25,18 @@ body:has(.tkc-content) {
  * Without enough padding the chapter-nav buttons are hidden behind these layers
  * and the user literally cannot scroll/reach them.
  */
-.tkc-main-content {
-  padding-bottom: 2.5rem; /* desktop default */
-}
+/*
+ * NOTE: The <main> element uses inline style `padding: '2.5rem 1.5rem'` (top/side)
+ * but NOT paddingBottom, so these class rules control bottom clearance on mobile.
+ * Do NOT add paddingBottom to the inline style on <main> — it would override these.
+ */
+.tkc-main-content,
 .tkc-main-upsell {
-  padding-bottom: 7rem;   /* desktop — upsell bar adds extra height */
+  padding-bottom: 2.5rem; /* desktop default — enough above the scroll bar */
 }
 @media (max-width: 767px) {
   .tkc-main-content {
-    padding-bottom: 9rem;  /* 144 px — clears mobile nav + Zalo + affiliate float */
+    padding-bottom: 9rem;    /* 144 px — clears mobile nav + Zalo + affiliate float */
   }
   .tkc-main-upsell {
     padding-bottom: 10.5rem; /* 168 px — extra for upsell sticky bar */

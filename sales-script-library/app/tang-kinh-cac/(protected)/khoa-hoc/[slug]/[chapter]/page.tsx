@@ -114,9 +114,21 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
   // Show KQ upsell layers from chapter index 2 onwards for non-KQ members on ban-do
   const showUpsell = isBanDo && !kqActive && currentIdx >= 2
 
-  // Affiliate data — only for khau-quyet paid pages (cached 5 min)
-  // ensureAffiliateCode generates code on first visit if not yet created
-  const affCode = isKQ ? await ensureAffiliateCode(session.email) : null
+  // Affiliate data — khau-quyet only, cached 5 min
+  // ensureAffiliateCode lazy-generates a code on first visit if not yet set
+  let affCode: string | null = null
+  if (isKQ) {
+    try {
+      affCode = await ensureAffiliateCode(session.email)
+      // Fallback: member was fetched above — use its code directly if ensure returned null
+      if (!affCode && member?.affiliate_code) {
+        affCode = member.affiliate_code
+      }
+    } catch (err) {
+      console.error('[Chapter] ensureAffiliateCode failed for', session.email, err)
+      if (member?.affiliate_code) affCode = member.affiliate_code
+    }
+  }
   const [affStats, totalActiveAffiliates] = isKQ
     ? await Promise.all([
         affCode ? getCachedAffiliateStats(session.email) : Promise.resolve(null),
@@ -210,12 +222,12 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
           {/* Layer 2: Sidebar CTA card — desktop only, from ch ≥ 2 */}
           {showUpsell && <KQUpsellSidebarCard />}
 
-          {/* Affiliate widget — desktop sidebar, paid KQ members */}
-          {showAffiliateWidget && <AffiliateWidget availableTotal={availableTotal} />}
+          {/* Affiliate widget — desktop sidebar, KQ readers */}
+          {isKQ && <AffiliateWidget availableTotal={availableTotal} />}
         </aside>
 
-        {/* Main content */}
-        <main className={showUpsell ? 'tkc-main-upsell' : 'tkc-main-content'} style={{ flex: 1, padding: '2.5rem 1.5rem', minWidth: 0 }}>
+        {/* Main content — paddingBottom is controlled by CSS class (responsive), not inline */}
+        <main className={showUpsell ? 'tkc-main-upsell' : 'tkc-main-content'} style={{ flex: 1, paddingTop: '2.5rem', paddingLeft: '1.5rem', paddingRight: '1.5rem', minWidth: 0 }}>
           <div style={{ maxWidth: '680px', margin: '0 auto' }}>
 
             {/* Chapter content */}
@@ -333,10 +345,8 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
       {/* Zalo group floating button — khau-quyet course only */}
       {isKQ && <ZaloGroupButton chapterId={chapter.id} slug={params.slug} />}
 
-      {/* Affiliate float button — mobile only, paid KQ members */}
-      {isKQ && showAffiliateWidget && (
-        <AffiliateFloatButton chapterId={chapter.id} slug={params.slug} />
-      )}
+      {/* Affiliate float button — mobile only, all KQ readers */}
+      {isKQ && <AffiliateFloatButton chapterId={chapter.id} slug={params.slug} />}
 
       {/* Copy detector toast — khau-quyet only */}
       {isKQ && <AffiliateCopyToast chapterId={chapter.id} />}

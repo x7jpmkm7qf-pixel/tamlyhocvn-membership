@@ -23,21 +23,32 @@ export default function AffiliateAhaBanner({ chapterTitle, chapterId, totalActiv
       return
     }
 
+    const show = () => {
+      if (triggered.current) return
+      triggered.current = true
+      setVisible(true)
+      posthog?.capture('aha_banner_shown', { current_chapter: chapterId, chapters_read: chaptersReadCount })
+    }
+
     const onScroll = () => {
       if (triggered.current) return
       const scrolled = window.scrollY + window.innerHeight
       const total = document.documentElement.scrollHeight
-      if (scrolled / total >= 0.65) {
-        triggered.current = true
-        window.removeEventListener('scroll', onScroll) // remove immediately after trigger
-        setVisible(true)
-        posthog?.capture('aha_banner_shown', { current_chapter: chapterId, chapters_read: chaptersReadCount })
+      if (scrolled / total >= 0.45) {
+        window.removeEventListener('scroll', onScroll)
+        show()
       }
     }
 
+    // Fallback: show after 25s even if user hasn't scrolled far enough
+    const timer = setTimeout(show, 25000)
+
     window.addEventListener('scroll', onScroll, { passive: true })
     onScroll() // check immediately in case page is already scrolled
-    return () => window.removeEventListener('scroll', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      clearTimeout(timer)
+    }
   }, [chapterId, chaptersReadCount]) // posthog excluded — stable enough, avoids re-registration
 
   const handleDismiss = () => {
