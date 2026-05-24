@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
+  "alias": ["tamlyhocvn.club", "www.tamlyhocvn.club"],
   "crons": [
     {
       "path":     "/api/cron/renewal-reminders",
