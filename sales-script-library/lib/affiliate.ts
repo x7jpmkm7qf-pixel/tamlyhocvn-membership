@@ -117,20 +117,28 @@ export function generateAffiliateCode(name: string): string {
 export async function ensureAffiliateCode(memberEmail: string): Promise<string | null> {
   const member = await getMember(memberEmail)
   if (!member) return null
-  if (member.affiliate_code) return member.affiliate_code
+  if (member.affiliate_code) return member.affiliate_code  // fast path
 
+  // Re-fetch the full member list to get a fresh snapshot.
+  // A concurrent call may have already generated and saved a code between our
+  // first getMember read and now — we must check again to avoid overwriting it.
   const members = await getMembers()
+  const fresh = members.find(m => m.id === member.id)
+  if (fresh?.affiliate_code) return fresh.affiliate_code  // concurrent call already set it
+
   const existingCodes = new Set(members.map(m => m.affiliate_code).filter(Boolean))
 
   let code: string
   let attempts = 0
   do {
-    code = generateAffiliateCode(member.name)
+    code = generateAffiliateCode(fresh?.name ?? member.name)
     attempts++
     if (attempts > 50) throw new Error('Could not generate unique affiliate code')
   } while (existingCodes.has(code))
 
-  await saveMember({ ...member, affiliate_code: code })
+  // Use the FRESH snapshot — not the stale `member` from the first getMember.
+  // If we used `member`, we'd overwrite any field changes made between reads.
+  await saveMember({ ...(fresh ?? member), affiliate_code: code })
   return code
 }
 
