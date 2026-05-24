@@ -4,6 +4,59 @@
    Navy reader bg (tailwind navy-*): #040e1c / #091b30 / #0f2744
    ─────────────────────────────────────────────────────────────────────────── */
 
+/* ── Scroll performance ──────────────────────────────────────────────────── */
+
+/*
+ * Body override: TKC pages render a full-bleed #091b30 div, so we don't need
+ * the body gradient. Removing background-image prevents background-attachment
+ * from being computed (which was the #1 cause of scroll jank on iOS Safari).
+ * Note: background-attachment: fixed is already removed from globals.css.
+ */
+body:has(.tkc-content) {
+  background-image: none;
+}
+
+/*
+ * Main content bottom clearance — CRITICAL for mobile.
+ * On mobile the page has multiple fixed elements stacked at the bottom:
+ *   - Mobile nav bar:    ~55 px  (position: fixed, bottom: 0)
+ *   - Zalo button:       bottom: 76 px + 48 px height = 124 px from bottom
+ *   - Affiliate float:   same row as Zalo (bottom: 76 px)
+ * Without enough padding the chapter-nav buttons are hidden behind these layers
+ * and the user literally cannot scroll/reach them.
+ */
+.tkc-main-content {
+  padding-bottom: 2.5rem; /* desktop default */
+}
+.tkc-main-upsell {
+  padding-bottom: 7rem;   /* desktop — upsell bar adds extra height */
+}
+@media (max-width: 767px) {
+  .tkc-main-content {
+    padding-bottom: 9rem;  /* 144 px — clears mobile nav + Zalo + affiliate float */
+  }
+  .tkc-main-upsell {
+    padding-bottom: 10.5rem; /* 168 px — extra for upsell sticky bar */
+  }
+}
+
+/* GPU composite layers for fixed/animated elements — reduces repaint area */
+.zkc-btn,
+.tkc-aff-float,
+.tkc-kq-sticky {
+  will-change: transform;
+}
+
+/* Pulse animation uses GPU-composited properties only — no top/left/width */
+.zkc-pulse {
+  will-change: transform, opacity;
+}
+
+/* Contain chapter article layout — prevents scroll from triggering full-page reflow */
+.tkc-content {
+  contain: layout style;
+}
+
 /* ── Section title / chapter label ──────────────────────────────────────── */
 .tkc-section-title {
   display: inline-block;

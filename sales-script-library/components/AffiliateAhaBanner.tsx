@@ -29,6 +29,7 @@ export default function AffiliateAhaBanner({ chapterTitle, chapterId, totalActiv
       const total = document.documentElement.scrollHeight
       if (scrolled / total >= 0.65) {
         triggered.current = true
+        window.removeEventListener('scroll', onScroll) // remove immediately after trigger
         setVisible(true)
         posthog?.capture('aha_banner_shown', { current_chapter: chapterId, chapters_read: chaptersReadCount })
       }

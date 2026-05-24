@@ -21,7 +21,6 @@ body {
   background-image:
     radial-gradient(ellipse 80% 40% at 50% -5%, rgba(124,58,237,0.09) 0%, transparent 60%),
     radial-gradient(ellipse 40% 30% at 100% 100%, rgba(245,158,11,0.07) 0%, transparent 60%);
-  background-attachment: fixed;
   color: #0f172a;
   min-height: 100vh;
 }
@@ -142,4 +141,21 @@ body {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 0.75rem;
+}
+
+/* ─── DEFENSIVE: suppress any injected chat widget ───────── */
+/* Runs last so it overrides everything. Do not remove. */
+#tawkchat-container, .tawk-min-container, .tawk-button-container,
+.crisp-client, #crisp-chatbox, #crisp-client-wrapper,
+[id^="tidio-"], [class^="tidio-"],
+[id^="drift-"], [class^="drift-"],
+[id*="chat-widget"], [class*="chat-widget"],
+iframe[title*="chat" i], iframe[title*="support" i],
+[class*="violet"][class*="fixed"][class*="z-50"][class*="rounded-full"],
+[class*="bg-violet"][style*="bottom: 1.5rem"][style*="right: 1.5rem"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }

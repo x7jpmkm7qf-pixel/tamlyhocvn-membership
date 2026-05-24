@@ -215,7 +215,7 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
         </aside>
 
         {/* Main content */}
-        <main style={{ flex: 1, padding: '2.5rem 1.5rem', minWidth: 0, paddingBottom: showUpsell ? '7rem' : '2.5rem' }}>
+        <main className={showUpsell ? 'tkc-main-upsell' : 'tkc-main-content'} style={{ flex: 1, padding: '2.5rem 1.5rem', minWidth: 0 }}>
           <div style={{ maxWidth: '680px', margin: '0 auto' }}>
 
             {/* Chapter content */}
