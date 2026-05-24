@@ -16,7 +16,7 @@ export async function GET(req: NextRequest, { params }: { params: { code: string
     path: '/',
   })
 
-  trackAffiliateClick(code).catch(() => {})
+  trackAffiliateClick(code).catch(e => console.error('[r/:code] trackAffiliateClick failed for', code, e))
 
   return response
 }

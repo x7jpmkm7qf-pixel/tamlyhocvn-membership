@@ -75,7 +75,8 @@ async function rhgetall(key: string): Promise<Record<string, string> | null> {
 
 export async function trackAffiliateClick(code: string): Promise<void> {
   const today = new Date().toISOString().slice(0, 10)
-  await rhincrby(`msl:aff_clicks:${code.toUpperCase()}`, today).catch(() => {})
+  await rhincrby(`msl:aff_clicks:${code.toUpperCase()}`, today)
+    .catch(e => console.error('[affiliate] HINCRBY failed for', code, today, e))
 }
 
 export async function getClickCount30d(code: string): Promise<number> {

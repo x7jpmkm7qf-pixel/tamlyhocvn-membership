@@ -200,20 +200,29 @@ export async function POST(req: NextRequest) {
 
     // ── Affiliate: generate code for new member + create commission ──
     if (action === 'ngoaimon-activate') {
-      Promise.all([
+      await Promise.all([
         ensureAffiliateCode(updated.email)
           .catch(e => console.error('[SePay] affiliate code gen failed:', e)),
         (async () => {
           const refCode = member.referred_by_code
-          if (!refCode) return
+          if (!refCode) {
+            console.log('[SePay] no referred_by_code for', updated.email, '— skipping commission')
+            return
+          }
           const referrer = await getMemberByAffCode(refCode)
-          if (!referrer) return
-          await createCommission({
+          if (!referrer) {
+            console.log('[SePay] referrer not found for code', refCode)
+            return
+          }
+          const commission = await createCommission({
             affiliate_email: referrer.email,
             buyer_email:     updated.email,
             order_reference_code: payload.referenceCode,
             order_amount: payload.transferAmount,
-          }).catch(e => console.error('[SePay] commission creation failed:', e))
+          }).catch(e => { console.error('[SePay] commission creation failed:', e); return null })
+          if (commission) {
+            console.log('[SePay] ✅ Commission created:', commission.commission_amount, 'for', referrer.email)
+          }
         })(),
       ])
     }

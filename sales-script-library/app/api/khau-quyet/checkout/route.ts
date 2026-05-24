@@ -77,11 +77,17 @@ export async function POST(req: NextRequest) {
   const phone = rawPhone.startsWith('+84') ? '0' + rawPhone.slice(3) : rawPhone
 
   const existing = await getMember(email)
+  const affCode = req.cookies.get('aff_code')?.value?.toUpperCase() || undefined
   if (existing) {
+    // Backfill referred_by_code for existing members who came via a referral link.
+    // The cookie is present but the 409 path previously discarded it entirely.
+    if (affCode && !existing.referred_by_code) {
+      saveMember({ ...existing, referred_by_code: affCode }).catch(e =>
+        console.error('[kq-checkout] failed to backfill referred_by_code:', e)
+      )
+    }
     return NextResponse.json({ emailExists: true }, { status: 409 })
   }
-
-  const affCode = req.cookies.get('aff_code')?.value?.toUpperCase() || undefined
 
   const plainPassword = generateSecurePassword()
   const now = new Date().toISOString()
