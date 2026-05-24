@@ -96,15 +96,12 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
     }
   }
 
-  // Mark chapter as read (only for accessible chapters)
-  await markChapterRead(session.id, course.id, chapter.id, chapters.length)
-
   const currentIdx = chapters.findIndex(c => c.id === chapter.id)
   const prevChapter = currentIdx > 0 ? chapters[currentIdx - 1] : null
   const nextChapter = currentIdx < chapters.length - 1 ? chapters[currentIdx + 1] : null
 
-  // Re-fetch updated enrollment for progress display
-  const updatedEnrollment = await getEnrollment(session.id, course.id)
+  // Mark chapter as read — returns updated enrollment directly, no second fetch needed
+  const updatedEnrollment = await markChapterRead(session.id, course.id, chapter.id, chapters.length)
   const progress = updatedEnrollment?.progressPercent ?? 0
   const chaptersRead = new Set(updatedEnrollment?.chaptersRead ?? [])
   const showWelcome = searchParams.welcome === 'true'

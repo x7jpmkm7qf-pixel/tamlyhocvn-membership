@@ -66,7 +66,7 @@ export default function TKCCheckoutClient({ email, name, qrDataUrl }: { email: s
             setCountdown(count)
             if (count <= 0) {
               if (countdownRef.current) clearInterval(countdownRef.current)
-              router.push('/tang-kinh-cac/khoa-hoc/khau-quyet')
+              router.push('/tang-kinh-cac/khoa-hoc/khau-quyet/kq-ch-00?welcome=true')
             }
           }, 1000)
         }
@@ -120,7 +120,7 @@ export default function TKCCheckoutClient({ email, name, qrDataUrl }: { email: s
         </div>
         <br />
         <Link
-          href="/tang-kinh-cac/khoa-hoc/khau-quyet"
+          href="/tang-kinh-cac/khoa-hoc/khau-quyet/kq-ch-00?welcome=true"
           style={{ display: 'inline-block', background: '#C9A961', color: '#040e1c', fontWeight: 700, padding: '0.75rem 2rem', borderRadius: '0.5rem', textDecoration: 'none' }}
         >
           Bắt đầu đọc ngay →
