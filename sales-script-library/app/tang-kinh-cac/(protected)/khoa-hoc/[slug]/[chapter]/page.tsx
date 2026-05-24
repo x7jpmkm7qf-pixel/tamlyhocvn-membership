@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { getMemberSession } from '@/lib/auth'
 import { getMember } from '@/lib/data'
 import { getCourseBySlug, getCourseContent, getEnrollment, enrollUser, markChapterRead } from '@/lib/courses'
-import { getCachedAffiliateStats, getCachedActiveAffiliatesCount } from '@/lib/affiliate'
+import { getCachedAffiliateStats, getCachedActiveAffiliatesCount, ensureAffiliateCode } from '@/lib/affiliate'
 import TKCWelcomeDialog from '@/components/TKCWelcomeDialog'
 import KQUpsellStickyBar from '@/components/KQUpsellStickyBar'
 import KQUpsellSidebarCard from '@/components/KQUpsellSidebarCard'
@@ -115,7 +115,8 @@ export default async function ChapterReaderPage({ params, searchParams }: Props)
   const showUpsell = isBanDo && !kqActive && currentIdx >= 2
 
   // Affiliate data — only for khau-quyet paid pages (cached 5 min)
-  const affCode = isKQ ? (member?.affiliate_code ?? null) : null
+  // ensureAffiliateCode generates code on first visit if not yet created
+  const affCode = isKQ ? await ensureAffiliateCode(session.email) : null
   const [affStats, totalActiveAffiliates] = isKQ
     ? await Promise.all([
         affCode ? getCachedAffiliateStats(session.email) : Promise.resolve(null),

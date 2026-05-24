@@ -27,7 +27,7 @@ export default function AffiliateAhaBanner({ chapterTitle, chapterId, totalActiv
       if (triggered.current) return
       const scrolled = window.scrollY + window.innerHeight
       const total = document.documentElement.scrollHeight
-      if (scrolled / total >= 0.85) {
+      if (scrolled / total >= 0.65) {
         triggered.current = true
         setVisible(true)
         posthog?.capture('aha_banner_shown', { current_chapter: chapterId, chapters_read: chaptersReadCount })
@@ -35,8 +35,9 @@ export default function AffiliateAhaBanner({ chapterTitle, chapterId, totalActiv
     }
 
     window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll() // check immediately in case page is already scrolled
     return () => window.removeEventListener('scroll', onScroll)
-  }, [chapterId, chaptersReadCount, posthog])
+  }, [chapterId, chaptersReadCount]) // posthog excluded — stable enough, avoids re-registration
 
   const handleDismiss = () => {
     sessionStorage.setItem(DISMISS_KEY, '1')
