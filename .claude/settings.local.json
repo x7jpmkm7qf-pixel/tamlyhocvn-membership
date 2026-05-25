@@ -6,7 +6,11 @@
       "Bash(curl -s http://localhost:3000/)",
       "Bash(pkill -f \"next dev\")",
       "Bash(npx vercel *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(git commit:*)",
+      "WebFetch(domain:wesuccess.vn)",
+      "Bash(Get-Date -UFormat \"%y%m%d\")",
+      "Bash(bash:*)"
     ]
   }
 }
