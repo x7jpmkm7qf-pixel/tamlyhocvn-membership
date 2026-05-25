@@ -19,10 +19,26 @@ export interface Commission {
   commission_amount: number
   order_amount: number
   referral_number: number
-  status: 'available' | 'clawback' | 'paid_out'
+  status: 'available' | 'requested' | 'processing' | 'paid_out' | 'on_hold' | 'rejected' | 'clawback'
   created_at: string
   paid_out_at?: string
   payout_request_id?: string
+  transfer_proof_url?: string
+  bank_reference?: string
+  is_manual?: boolean
+  manual_type?: 'BONUS' | 'COMPENSATION' | 'MANUAL_REFERRAL' | 'ADJUSTMENT_PLUS' | 'ADJUSTMENT_MINUS'
+  manual_reason?: string
+  created_by_admin_id?: string
+}
+
+export interface AuditLogEntry {
+  id: string
+  commission_id: string
+  old_status: Commission['status']
+  new_status: Commission['status']
+  changed_by: string
+  reason: string
+  timestamp: string
 }
 
 export interface PayoutRequest {
@@ -102,6 +118,22 @@ export async function saveCommissions(commissions: Commission[]): Promise<void> 
 
 export async function savePayoutRequests(requests: PayoutRequest[]): Promise<void> {
   await rset(PAYOUT_REQUESTS_KEY, requests)
+}
+
+const AUDIT_LOG_KEY = 'msl:affiliate_audit_log'
+
+export async function getAuditLogs(): Promise<AuditLogEntry[]> {
+  return (await rget<AuditLogEntry[]>(AUDIT_LOG_KEY)) || []
+}
+
+export async function saveAuditLogs(logs: AuditLogEntry[]): Promise<void> {
+  await rset(AUDIT_LOG_KEY, logs)
+}
+
+export async function appendAuditLog(entry: Omit<AuditLogEntry, 'id'>): Promise<void> {
+  const logs = await getAuditLogs()
+  logs.push({ ...entry, id: crypto.randomUUID() })
+  await saveAuditLogs(logs)
 }
 
 export function generateAffiliateCode(name: string): string {

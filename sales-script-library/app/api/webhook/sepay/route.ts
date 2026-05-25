@@ -199,21 +199,22 @@ export async function POST(req: NextRequest) {
     console.log(`[SePay] ✅ ${actionLabel}:`, email)
 
     // ── Affiliate: generate code for new member + create commission ──
+    // Sequential (not Promise.all) — both paths call saveMember on different members.
+    // Parallel execution causes saveMember's read-modify-write to clobber each other:
+    // createCommission's saveMember(affiliate) reads a stale array snapshot that doesn't
+    // yet include the code written by ensureAffiliateCode, and overwrites it back to null.
     if (action === 'ngoaimon-activate') {
-      await Promise.all([
-        ensureAffiliateCode(updated.email)
-          .catch(e => console.error('[SePay] affiliate code gen failed:', e)),
-        (async () => {
-          const refCode = member.referred_by_code
-          if (!refCode) {
-            console.log('[SePay] no referred_by_code for', updated.email, '— skipping commission')
-            return
-          }
-          const referrer = await getMemberByAffCode(refCode)
-          if (!referrer) {
-            console.log('[SePay] referrer not found for code', refCode)
-            return
-          }
+      await ensureAffiliateCode(updated.email)
+        .catch(e => console.error('[SePay] affiliate code gen failed:', e))
+
+      const refCode = member.referred_by_code
+      if (!refCode) {
+        console.log('[SePay] no referred_by_code for', updated.email, '— skipping commission')
+      } else {
+        const referrer = await getMemberByAffCode(refCode)
+        if (!referrer) {
+          console.log('[SePay] referrer not found for code', refCode)
+        } else {
           const commission = await createCommission({
             affiliate_email: referrer.email,
             buyer_email:     updated.email,
@@ -223,8 +224,8 @@ export async function POST(req: NextRequest) {
           if (commission) {
             console.log('[SePay] ✅ Commission created:', commission.commission_amount, 'for', referrer.email)
           }
-        })(),
-      ])
+        }
+      }
     }
 
     // ── 7. Gửi thông báo Telegram ─────────────────────────────
