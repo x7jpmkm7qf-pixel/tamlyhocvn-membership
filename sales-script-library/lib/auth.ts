@@ -170,3 +170,22 @@ export function validatePasswordStrength(plaintext: string): { ok: boolean; reas
 
 export const MEMBER_COOKIE_NAME = MEMBER_COOKIE
 export const ADMIN_COOKIE_NAME = ADMIN_COOKIE
+
+// ── Session cookie scope ────────────────────────────────────────────────────
+// Set COOKIE_DOMAIN=".tamlyhocvn.club" in production so the login cookie is
+// shared across the apex (tamlyhocvn.club) and www (www.tamlyhocvn.club).
+// Without it the cookie is host-only and users get logged out when a link/redirect
+// moves them between apex and www. Leave unset on localhost / Vercel previews.
+export const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || undefined
+
+/** Shared options for the session cookies. Spread into res.cookies.set(). */
+export function sessionCookieOptions(maxAge: number) {
+  return {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    maxAge,
+    path: '/',
+    ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
+  }
+}

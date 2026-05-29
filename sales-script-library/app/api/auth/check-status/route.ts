@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMember, saveMember, Member } from '@/lib/data'
 import { notifyPaymentConfirmed } from '@/lib/telegram'
-import { setMemberCookie, MEMBER_COOKIE_NAME } from '@/lib/auth'
+import { setMemberCookie, MEMBER_COOKIE_NAME, sessionCookieOptions } from '@/lib/auth'
 import { sendKhauQuyetDelivery } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
@@ -78,13 +78,7 @@ function responseWithSession(member: { id: string; name: string; email: string }
   const res = NextResponse.json(body, {
     headers: { 'Cache-Control': 'no-store' }
   })
-  res.cookies.set(MEMBER_COOKIE_NAME, encoded, {
-    httpOnly: true,
-    secure:   process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge:   60 * 60 * 24 * 7,  // 7 ngày
-    path:     '/',
-  })
+  res.cookies.set(MEMBER_COOKIE_NAME, encoded, sessionCookieOptions(60 * 60 * 24 * 7))
   return res
 }
 

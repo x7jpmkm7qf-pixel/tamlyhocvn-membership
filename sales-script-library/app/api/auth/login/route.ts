@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMember, saveMember } from '@/lib/data'
-import { setMemberCookie, MEMBER_COOKIE_NAME, verifyPassword, isHashedPassword, hashPassword } from '@/lib/auth'
+import { setMemberCookie, MEMBER_COOKIE_NAME, sessionCookieOptions, verifyPassword, isHashedPassword, hashPassword } from '@/lib/auth'
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json()
@@ -32,12 +32,6 @@ export async function POST(req: NextRequest) {
   const encoded = setMemberCookie(session)
 
   const res = NextResponse.json({ success: true, member: session })
-  res.cookies.set(MEMBER_COOKIE_NAME, encoded, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 7,
-    path: '/',
-  })
+  res.cookies.set(MEMBER_COOKIE_NAME, encoded, sessionCookieOptions(60 * 60 * 24 * 7))
   return res
 }

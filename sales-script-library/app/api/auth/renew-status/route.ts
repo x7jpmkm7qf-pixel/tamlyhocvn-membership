@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMember, saveMember } from '@/lib/data'
 import { notifyPaymentConfirmed } from '@/lib/telegram'
-import { setMemberCookie, MEMBER_COOKIE_NAME } from '@/lib/auth'
+import { setMemberCookie, MEMBER_COOKIE_NAME, sessionCookieOptions } from '@/lib/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -97,12 +97,6 @@ export async function GET(req: NextRequest) {
     { status: 'renewed', name: member.name, expiresAt: newExpiresAt },
     { headers: { 'Cache-Control': 'no-store' } }
   )
-  res.cookies.set(MEMBER_COOKIE_NAME, encoded, {
-    httpOnly: true,
-    secure:   process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge:   60 * 60 * 24 * 7,
-    path:     '/',
-  })
+  res.cookies.set(MEMBER_COOKIE_NAME, encoded, sessionCookieOptions(60 * 60 * 24 * 7))
   return res
 }

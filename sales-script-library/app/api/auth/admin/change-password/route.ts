@@ -16,6 +16,7 @@ import {
   setAdminPasswordHash,
   validatePasswordStrength,
   ADMIN_COOKIE_NAME,
+  sessionCookieOptions,
 } from '@/lib/auth'
 
 export const runtime = 'nodejs'
@@ -59,12 +60,6 @@ export async function POST(req: NextRequest) {
 
   // Clear admin cookie → force re-login với password mới
   const res = NextResponse.json({ success: true, message: 'Đã đổi mật khẩu — vui lòng đăng nhập lại' })
-  res.cookies.set(ADMIN_COOKIE_NAME, '', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 0,
-    path: '/',
-  })
+  res.cookies.set(ADMIN_COOKIE_NAME, '', sessionCookieOptions(0))
   return res
 }
